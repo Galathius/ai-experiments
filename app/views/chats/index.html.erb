@@ -78,6 +78,32 @@
             </div>
           <% end %>
         </div>
+        
+        <!-- User Info & Sign Out -->
+        <div class="border-t border-gray-200 p-4 bg-gray-50">
+          <div class="flex items-center justify-between">
+            <div class="flex items-center space-x-3">
+              <div class="w-8 h-8 bg-blue-600 rounded-full flex items-center justify-center">
+                <span class="text-white text-sm font-medium">
+                  <%= Current.user.first_name&.first&.upcase || Current.user.email_address&.first&.upcase %>
+                </span>
+              </div>
+              <div class="min-w-0 flex-1">
+                <p class="text-sm font-medium text-gray-900 truncate">
+                  <%= [Current.user.first_name, Current.user.last_name].compact.join(' ').presence || 'User' %>
+                </p>
+                <p class="text-xs text-gray-500 truncate">
+                  <%= Current.user.email_address %>
+                </p>
+              </div>
+            </div>
+            <%= button_to session_path, method: :delete, class: "inline-flex items-center px-2 py-1 text-xs text-gray-600 hover:text-gray-900 transition-colors", title: "Sign out" do %>
+              <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1"></path>
+              </svg>
+            <% end %>
+          </div>
+        </div>
       </div>
       
       <!-- Desktop Main Chat Area -->

@@ -1,7 +1,8 @@
 {
   "permissions": {
     "allow": [
-      "Bash(bin/rails generate migration:*)"
+      "Bash(bin/rails generate migration:*)",
+      "Bash(grep:*)"
     ],
     "deny": []
   }
