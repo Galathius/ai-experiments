@@ -29,17 +29,23 @@
     </div>
   <% end %>
 
-  <% if Rails.env.development? %>
-    <%= form_tag "/auth/developer", method: :post, data: { turbo: false } do %>
-      <button type="submit">
-        Login with Developer
-      </button>
-    <% end %>
-  <% end %>
-
-  <%= form_tag "/auth/google_oauth2", method: :post, data: { turbo: false } do %>
-    <button type="submit">
-      Login with Google
-    </button>
-  <% end %>
+  <div class="mt-8 border-t border-gray-200 pt-6">
+    <div class="text-center text-sm text-gray-500 mb-4">
+      Or continue with
+    </div>
+    
+    <div class="space-y-3">
+      <%= button_to "/auth/google_oauth2", method: :post, data: { turbo: false }, class: "w-full flex items-center justify-center gap-3 px-4 py-3 border border-gray-300 rounded-md shadow-sm bg-white text-gray-700 font-medium hover:bg-gray-50 hover:border-gray-400 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 transition-colors cursor-pointer" do %>
+        <%= image_tag "google-logo.svg", class: "w-5 h-5" %>
+        Continue with Google
+      <% end %>
+      
+      <% if Rails.env.development? %>
+        <%= button_to "/auth/developer", method: :post, data: { turbo: false }, class: "w-full flex items-center justify-center gap-3 px-4 py-3 border border-gray-300 rounded-md shadow-sm bg-white text-gray-700 font-medium hover:bg-gray-50 hover:border-gray-400 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 transition-colors cursor-pointer" do %>
+          <%= image_tag "developer-icon.svg", class: "w-5 h-5" %>
+          Continue with Developer
+        <% end %>
+      <% end %>
+    </div>
+  </div>
 </div>
