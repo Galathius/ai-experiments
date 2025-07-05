@@ -19,7 +19,7 @@
             <%= [Current.user.first_name, Current.user.last_name].compact.join(' ').presence || 'User' %>
           </span>
         </div>
-        <%= button_to session_path, method: :delete, class: "text-sm text-gray-600 hover:text-gray-900 transition-colors", title: "Sign out" do %>
+        <%= button_to session_path, method: :delete, class: "text-sm text-gray-600 hover:text-gray-900 transition-colors cursor-pointer", title: "Sign out" do %>
           Sign out
         <% end %>
       </div>
