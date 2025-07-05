@@ -1,9 +1,11 @@
-<% password_digest = BCrypt::Password.create("password") %>
+existing:
+  email_address: existing@example.com
+  first_name: Existing
+  last_name: User
+  password_digest: <%= BCrypt::Password.create("password") %>
 
-one:
-  email_address: one@example.com
-  password_digest: <%= password_digest %>
-
-two:
-  email_address: two@example.com
-  password_digest: <%= password_digest %>
+existing_no_pass:
+  email_address: existing_no_pass@example.com
+  first_name: Existing
+  last_name: User No Pass
+  password_digest: <%= BCrypt::Password.create(SecureRandom.base64(64).truncate_bytes(64)) %>

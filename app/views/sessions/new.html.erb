@@ -28,4 +28,18 @@
       </div>
     </div>
   <% end %>
+
+  <% if Rails.env.development? %>
+    <%= form_tag "/auth/developer", method: :post, data: { turbo: false } do %>
+      <button type="submit">
+        Login with Developer
+      </button>
+    <% end %>
+  <% end %>
+
+  <%= form_tag "/auth/google_oauth2", method: :post, data: { turbo: false } do %>
+    <button type="submit">
+      Login with Google
+    </button>
+  <% end %>
 </div>

@@ -1,0 +1,6 @@
+# Read about fixtures at https://api.rubyonrails.org/classes/ActiveRecord/FixtureSet.html
+
+existing:
+  user: existing
+  provider: github
+  uid: 12345

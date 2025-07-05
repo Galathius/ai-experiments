@@ -1,4 +1,5 @@
 Rails.application.routes.draw do
+  resources :chats
   resource :session
   resources :passwords, param: :token
   # Define your application routes per the DSL in https://guides.rubyonrails.org/routing.html
@@ -11,6 +12,9 @@ Rails.application.routes.draw do
   # get "manifest" => "rails/pwa#manifest", as: :pwa_manifest
   # get "service-worker" => "rails/pwa#service_worker", as: :pwa_service_worker
 
+  get "/auth/:provider/callback" => "sessions/omni_auths#create", as: :omniauth_callback
+  get "/auth/failure" => "sessions/omni_auths#failure", as: :omniauth_failure
+
   # Defines the root path route ("/")
-  # root "posts#index"
+  root "chats#index"
 end
