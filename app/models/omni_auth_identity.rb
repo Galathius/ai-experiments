@@ -13,11 +13,5 @@ class OmniAuthIdentity < ApplicationRecord
     provider == 'hubspot'
   end
   
-  def access_token
-    token
-  end
-  
-  def refresh_token
-    refresh_token_value
-  end
+  # access_token and refresh_token are already column names, no need for custom methods
 end

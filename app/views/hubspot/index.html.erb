@@ -1,6 +1,25 @@
-<% content_for :page_title, "HubSpot Integration" %>
+<div class="min-h-screen bg-gray-50">
+  <%= render "layouts/minimal_header", page_title: "HubSpot Integration", container_class: "max-w-6xl" %>
 
-<div class="max-w-4xl mx-auto">
+  <div class="max-w-6xl mx-auto px-4 py-8">
+    <!-- Breadcrumb Navigation -->
+    <nav class="flex mb-6" aria-label="Breadcrumb">
+      <ol class="flex items-center space-x-2">
+        <li>
+          <%= link_to root_path, class: "text-gray-500 hover:text-gray-700" do %>
+            <svg class="w-4 h-4" fill="currentColor" viewBox="0 0 20 20">
+              <path d="M10.707 2.293a1 1 0 00-1.414 0l-7 7a1 1 0 001.414 1.414L9 5.414V17a1 1 0 102 0V5.414l5.293 5.293a1 1 0 001.414-1.414l-7-7z"/>
+            </svg>
+          <% end %>
+        </li>
+        <svg class="w-4 h-4 text-gray-400" fill="currentColor" viewBox="0 0 20 20">
+          <path fill-rule="evenodd" d="M7.293 14.707a1 1 0 010-1.414L10.586 10 7.293 6.707a1 1 0 011.414-1.414l4 4a1 1 0 010 1.414l-4 4a1 1 0 01-1.414 0z" clip-rule="evenodd"/>
+        </svg>
+        <li>
+          <span class="text-gray-900 font-medium">HubSpot Integration</span>
+        </li>
+      </ol>
+    </nav>
   <div class="bg-white shadow rounded-lg">
     <div class="px-6 py-4 border-b border-gray-200">
       <h2 class="text-xl font-semibold text-gray-900">HubSpot CRM Integration</h2>
@@ -31,32 +50,27 @@
         <!-- Data Statistics -->
         <div class="grid grid-cols-1 md:grid-cols-2 gap-6 mb-6">
           <div class="bg-gray-50 rounded-lg p-4">
-            <div class="flex items-center">
-              <div class="flex-shrink-0">
-                <svg class="h-8 w-8 text-blue-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z"></path>
-                </svg>
+            <div class="flex items-center justify-between">
+              <div class="flex items-center">
+                <div class="flex-shrink-0">
+                  <svg class="h-8 w-8 text-blue-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z"></path>
+                  </svg>
+                </div>
+                <div class="ml-4">
+                  <h3 class="text-lg font-medium text-gray-900">Contacts</h3>
+                  <p class="text-2xl font-bold text-blue-600"><%= @contacts_count %></p>
+                </div>
               </div>
-              <div class="ml-4">
-                <h3 class="text-lg font-medium text-gray-900">Contacts</h3>
-                <p class="text-2xl font-bold text-blue-600"><%= @contacts_count %></p>
-              </div>
+              
+              <% if @contacts_count > 0 %>
+                <%= link_to hubspot_contacts_path, class: "text-sm text-blue-600 hover:text-blue-800 font-medium" do %>
+                  View all →
+                <% end %>
+              <% end %>
             </div>
           </div>
           
-          <div class="bg-gray-50 rounded-lg p-4">
-            <div class="flex items-center">
-              <div class="flex-shrink-0">
-                <svg class="h-8 w-8 text-green-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"></path>
-                </svg>
-              </div>
-              <div class="ml-4">
-                <h3 class="text-lg font-medium text-gray-900">Notes</h3>
-                <p class="text-2xl font-bold text-green-600"><%= @notes_count %></p>
-              </div>
-            </div>
-          </div>
         </div>
         
         <!-- Actions -->
@@ -67,13 +81,6 @@
                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4"></path>
               </svg>
               Import Contacts
-            <% end %>
-            
-            <%= button_to import_hubspot_notes_path, method: :post, class: "inline-flex items-center px-4 py-2 border border-transparent text-sm font-medium rounded-md shadow-sm text-white bg-green-600 hover:bg-green-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-green-500" do %>
-              <svg class="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4"></path>
-              </svg>
-              Import Notes
             <% end %>
           </div>
           
@@ -108,5 +115,6 @@
         </div>
       <% end %>
     </div>
+  </div>
   </div>
 </div>

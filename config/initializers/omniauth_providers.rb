@@ -12,6 +12,6 @@ Rails.application.config.middleware.use OmniAuth::Builder do
     Rails.application.credentials.dig(:oauth, :hubspot, :client_id),
     Rails.application.credentials.dig(:oauth, :hubspot, :client_secret),
     {
-      scope: 'oauth crm.objects.contacts.read'
+      scope: 'oauth crm.objects.contacts.read crm.objects.notes.read'
     }
 end

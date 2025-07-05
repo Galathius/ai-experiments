@@ -21,7 +21,13 @@ Rails.application.routes.draw do
   get '/hubspot' => 'hubspot#index'
   delete '/hubspot/disconnect' => 'hubspot#disconnect', as: :disconnect_hubspot
   post '/hubspot/import_contacts' => 'hubspot#import_contacts', as: :import_hubspot_contacts
-  post '/hubspot/import_notes' => 'hubspot#import_notes', as: :import_hubspot_notes
+  
+  resources :hubspot_contacts, only: [:index, :show]
+  
+  get '/google' => 'google#index'
+  delete '/google/disconnect' => 'google#disconnect', as: :disconnect_google
+  post '/google/import_emails' => 'google#import_emails', as: :import_google_emails
+  post '/google/import_calendar' => 'google#import_calendar', as: :import_google_calendar
   
   resource :session
   resources :passwords, param: :token

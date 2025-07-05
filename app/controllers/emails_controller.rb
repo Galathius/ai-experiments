@@ -4,20 +4,15 @@ class EmailsController < ApplicationController
   end
 
   def import
-    gmail_service = GmailService.new(Current.user)
+    google_identity = Current.user.google_identity
     
-    begin
-      emails_imported = gmail_service.import_emails(limit: params[:limit]&.to_i || 50)
-      
-      if emails_imported > 0
-        redirect_to emails_path, notice: "Successfully imported #{emails_imported} emails!"
-      else
-        redirect_to emails_path, alert: "No new emails to import."
-      end
-    rescue => e
-      Rails.logger.error "Email import failed: #{e.message}"
-      redirect_to emails_path, alert: "Failed to import emails. Please check your Gmail connection."
+    unless google_identity
+      redirect_to emails_path, alert: "Please connect your Google account first."
+      return
     end
+
+    ImportEmailsJob.perform_later(Current.user.id)
+    redirect_to emails_path, notice: "Email import started. This may take a few minutes."
   end
 
   def show

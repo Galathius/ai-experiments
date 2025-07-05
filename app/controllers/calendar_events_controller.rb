@@ -4,20 +4,15 @@ class CalendarEventsController < ApplicationController
   end
 
   def import
-    calendar_service = CalendarService.new(Current.user)
+    google_identity = Current.user.google_identity
     
-    begin
-      events_imported = calendar_service.import_events(limit: params[:limit]&.to_i || 50)
-      
-      if events_imported > 0
-        redirect_to calendar_events_path, notice: "Successfully imported #{events_imported} calendar events!"
-      else
-        redirect_to calendar_events_path, alert: "No new calendar events to import."
-      end
-    rescue => e
-      Rails.logger.error "Calendar import failed: #{e.message}"
-      redirect_to calendar_events_path, alert: "Failed to import calendar events. Please check your Google Calendar connection."
+    unless google_identity
+      redirect_to calendar_events_path, alert: "Please connect your Google account first."
+      return
     end
+
+    ImportCalendarEventsJob.perform_later(Current.user.id)
+    redirect_to calendar_events_path, notice: "Calendar import started. This may take a few minutes."
   end
 
   def show

@@ -2,6 +2,33 @@
   <%= render "layouts/minimal_header", page_title: "Calendar Events", container_class: "max-w-6xl" %>
 
   <div class="max-w-6xl mx-auto px-4 py-8">
+    <!-- Breadcrumb Navigation -->
+    <nav class="flex mb-6" aria-label="Breadcrumb">
+      <ol class="flex items-center space-x-2">
+        <li>
+          <%= link_to root_path, class: "text-gray-500 hover:text-gray-700" do %>
+            <svg class="w-4 h-4" fill="currentColor" viewBox="0 0 20 20">
+              <path d="M10.707 2.293a1 1 0 00-1.414 0l-7 7a1 1 0 001.414 1.414L9 5.414V17a1 1 0 102 0V5.414l5.293 5.293a1 1 0 001.414-1.414l-7-7z"/>
+            </svg>
+          <% end %>
+        </li>
+        <svg class="w-4 h-4 text-gray-400" fill="currentColor" viewBox="0 0 20 20">
+          <path fill-rule="evenodd" d="M7.293 14.707a1 1 0 010-1.414L10.586 10 7.293 6.707a1 1 0 011.414-1.414l4 4a1 1 0 010 1.414l-4 4a1 1 0 01-1.414 0z" clip-rule="evenodd"/>
+        </svg>
+        <li>
+          <%= link_to google_path, class: "text-gray-500 hover:text-gray-700" do %>
+            Google
+          <% end %>
+        </li>
+        <svg class="w-4 h-4 text-gray-400" fill="currentColor" viewBox="0 0 20 20">
+          <path fill-rule="evenodd" d="M7.293 14.707a1 1 0 010-1.414L10.586 10 7.293 6.707a1 1 0 011.414-1.414l4 4a1 1 0 010 1.414l-4 4a1 1 0 01-1.414 0z" clip-rule="evenodd"/>
+        </svg>
+        <li>
+          <span class="text-gray-900 font-medium">Calendar Events</span>
+        </li>
+      </ol>
+    </nav>
+
     <div class="flex items-center justify-between mb-8">
       
       <div class="flex items-center space-x-4">
@@ -12,12 +39,6 @@
           Import Calendar
         <% end %>
         
-        <%= link_to root_path, class: "inline-flex items-center px-4 py-2 bg-gray-600 hover:bg-gray-700 text-white rounded-lg transition-colors" do %>
-          <svg class="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 12h.01M12 12h.01M16 12h.01M21 12c0 4.418-3.582 8-8 8a8.959 8.959 0 01-4.906-1.456l-3.547 1.456L6.05 16.416C4.779 14.989 4 13.094 4 11c0-4.418 3.582-8 8-8s8 3.582 8 8z"></path>
-          </svg>
-          Back to Chat
-        <% end %>
       </div>
     </div>
 

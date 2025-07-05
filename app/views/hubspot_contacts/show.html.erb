@@ -1,0 +1,174 @@
+<div class="min-h-screen bg-gray-50">
+  <%= render "layouts/minimal_header", page_title: (@contact.full_name.present? ? @contact.full_name : "HubSpot Contact"), container_class: "max-w-6xl" %>
+
+  <div class="max-w-6xl mx-auto px-4 py-8">
+    <!-- Breadcrumb Navigation -->
+    <nav class="flex mb-6" aria-label="Breadcrumb">
+      <ol class="flex items-center space-x-2">
+        <li>
+          <%= link_to root_path, class: "text-gray-500 hover:text-gray-700" do %>
+            <svg class="w-4 h-4" fill="currentColor" viewBox="0 0 20 20">
+              <path d="M10.707 2.293a1 1 0 00-1.414 0l-7 7a1 1 0 001.414 1.414L9 5.414V17a1 1 0 102 0V5.414l5.293 5.293a1 1 0 001.414-1.414l-7-7z"/>
+            </svg>
+          <% end %>
+        </li>
+        <svg class="w-4 h-4 text-gray-400" fill="currentColor" viewBox="0 0 20 20">
+          <path fill-rule="evenodd" d="M7.293 14.707a1 1 0 010-1.414L10.586 10 7.293 6.707a1 1 0 011.414-1.414l4 4a1 1 0 010 1.414l-4 4a1 1 0 01-1.414 0z" clip-rule="evenodd"/>
+        </svg>
+        <li>
+          <%= link_to hubspot_path, class: "text-gray-500 hover:text-gray-700" do %>
+            HubSpot
+          <% end %>
+        </li>
+        <svg class="w-4 h-4 text-gray-400" fill="currentColor" viewBox="0 0 20 20">
+          <path fill-rule="evenodd" d="M7.293 14.707a1 1 0 010-1.414L10.586 10 7.293 6.707a1 1 0 011.414-1.414l4 4a1 1 0 010 1.414l-4 4a1 1 0 01-1.414 0z" clip-rule="evenodd"/>
+        </svg>
+        <li>
+          <%= link_to hubspot_contacts_path, class: "text-gray-500 hover:text-gray-700" do %>
+            Contacts
+          <% end %>
+        </li>
+        <svg class="w-4 h-4 text-gray-400" fill="currentColor" viewBox="0 0 20 20">
+          <path fill-rule="evenodd" d="M7.293 14.707a1 1 0 010-1.414L10.586 10 7.293 6.707a1 1 0 011.414-1.414l4 4a1 1 0 010 1.414l-4 4a1 1 0 01-1.414 0z" clip-rule="evenodd"/>
+        </svg>
+        <li>
+          <span class="text-gray-900 font-medium"><%= @contact.full_name.present? ? @contact.full_name : "Contact" %></span>
+        </li>
+      </ol>
+    </nav>
+  <!-- Header -->
+  <div class="mb-6">
+    <div class="flex items-center justify-between">
+      <div>
+        
+        <h1 class="text-2xl font-bold text-gray-900">
+          <%= @contact.full_name.present? ? @contact.full_name : "Unnamed Contact" %>
+        </h1>
+        
+        <% if @contact.company.present? %>
+          <p class="text-lg text-gray-600 mt-1">
+            <svg class="w-5 h-5 inline mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4"></path>
+            </svg>
+            <%= @contact.company %>
+          </p>
+        <% end %>
+      </div>
+      
+      <!-- Contact Avatar -->
+      <div class="flex-shrink-0">
+        <div class="w-20 h-20 bg-blue-100 rounded-full flex items-center justify-center">
+          <span class="text-blue-600 font-bold text-2xl">
+            <%= @contact.full_name.present? ? @contact.full_name.first.upcase : "?" %>
+          </span>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Contact Details -->
+  <div class="bg-white shadow rounded-lg">
+    <div class="px-6 py-4 border-b border-gray-200">
+      <h2 class="text-lg font-medium text-gray-900">Contact Information</h2>
+    </div>
+    
+    <div class="px-6 py-4">
+      <dl class="grid grid-cols-1 gap-6 sm:grid-cols-2">
+        <% if @contact.first_name.present? %>
+          <div>
+            <dt class="text-sm font-medium text-gray-500">First Name</dt>
+            <dd class="mt-1 text-sm text-gray-900"><%= @contact.first_name %></dd>
+          </div>
+        <% end %>
+        
+        <% if @contact.last_name.present? %>
+          <div>
+            <dt class="text-sm font-medium text-gray-500">Last Name</dt>
+            <dd class="mt-1 text-sm text-gray-900"><%= @contact.last_name %></dd>
+          </div>
+        <% end %>
+        
+        <% if @contact.email.present? %>
+          <div>
+            <dt class="text-sm font-medium text-gray-500">Email</dt>
+            <dd class="mt-1 text-sm text-gray-900">
+              <a href="mailto:<%= @contact.email %>" class="text-blue-600 hover:text-blue-800">
+                <%= @contact.email %>
+              </a>
+            </dd>
+          </div>
+        <% end %>
+        
+        <% if @contact.phone.present? %>
+          <div>
+            <dt class="text-sm font-medium text-gray-500">Phone</dt>
+            <dd class="mt-1 text-sm text-gray-900">
+              <a href="tel:<%= @contact.phone %>" class="text-blue-600 hover:text-blue-800">
+                <%= @contact.phone %>
+              </a>
+            </dd>
+          </div>
+        <% end %>
+        
+        <% if @contact.company.present? %>
+          <div>
+            <dt class="text-sm font-medium text-gray-500">Company</dt>
+            <dd class="mt-1 text-sm text-gray-900"><%= @contact.company %></dd>
+          </div>
+        <% end %>
+        
+        <div>
+          <dt class="text-sm font-medium text-gray-500">HubSpot ID</dt>
+          <dd class="mt-1 text-sm text-gray-900 font-mono"><%= @contact.hubspot_contact_id %></dd>
+        </div>
+      </dl>
+    </div>
+  </div>
+
+  <!-- Notes Section -->
+  <% if @contact.notes.present? %>
+    <div class="mt-6 bg-white shadow rounded-lg">
+      <div class="px-6 py-4 border-b border-gray-200">
+        <h2 class="text-lg font-medium text-gray-900">Notes</h2>
+      </div>
+      
+      <div class="px-6 py-4">
+        <div class="prose max-w-none">
+          <%= simple_format(@contact.notes) %>
+        </div>
+      </div>
+    </div>
+  <% end %>
+
+  <!-- Embedding Status -->
+  <div class="mt-6 bg-white shadow rounded-lg">
+    <div class="px-6 py-4 border-b border-gray-200">
+      <h2 class="text-lg font-medium text-gray-900">AI Search Status</h2>
+    </div>
+    
+    <div class="px-6 py-4">
+      <% if @contact.embedding.present? %>
+        <div class="flex items-center text-green-600">
+          <svg class="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+          </svg>
+          <span class="text-sm font-medium">This contact is indexed for AI search</span>
+        </div>
+        <p class="mt-2 text-sm text-gray-600">
+          The AI assistant can find and reference this contact when answering questions.
+        </p>
+      <% else %>
+        <div class="flex items-center text-yellow-600">
+          <svg class="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-2.5L13.732 4c-.77-.833-1.964-.833-2.732 0L3.732 16.5c-.77.833.192 2.5 1.732 2.5z"></path>
+          </svg>
+          <span class="text-sm font-medium">Contact not yet indexed for AI search</span>
+        </div>
+        <p class="mt-2 text-sm text-gray-600">
+          This contact will be indexed for AI search automatically.
+        </p>
+      <% end %>
+    </div>
+  </div>
+  </div>
+</div>

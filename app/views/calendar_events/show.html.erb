@@ -1,15 +1,41 @@
 <div class="min-h-screen bg-gray-50">
-  <%= render "layouts/minimal_header", page_title: "Event Details", container_class: "max-w-4xl" %>
+  <%= render "layouts/minimal_header", page_title: "Event Details", container_class: "max-w-6xl" %>
 
-  <div class="max-w-4xl mx-auto px-4 py-8">
-    <div class="mb-8">
-      <%= link_to calendar_events_path, class: "inline-flex items-center text-blue-600 hover:text-blue-700" do %>
-        <svg class="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 19l-7-7m0 0l7-7m-7 7h18"></path>
+  <div class="max-w-6xl mx-auto px-4 py-8">
+    <!-- Breadcrumb Navigation -->
+    <nav class="flex mb-6" aria-label="Breadcrumb">
+      <ol class="flex items-center space-x-2">
+        <li>
+          <%= link_to root_path, class: "text-gray-500 hover:text-gray-700" do %>
+            <svg class="w-4 h-4" fill="currentColor" viewBox="0 0 20 20">
+              <path d="M10.707 2.293a1 1 0 00-1.414 0l-7 7a1 1 0 001.414 1.414L9 5.414V17a1 1 0 102 0V5.414l5.293 5.293a1 1 0 001.414-1.414l-7-7z"/>
+            </svg>
+          <% end %>
+        </li>
+        <svg class="w-4 h-4 text-gray-400" fill="currentColor" viewBox="0 0 20 20">
+          <path fill-rule="evenodd" d="M7.293 14.707a1 1 0 010-1.414L10.586 10 7.293 6.707a1 1 0 011.414-1.414l4 4a1 1 0 010 1.414l-4 4a1 1 0 01-1.414 0z" clip-rule="evenodd"/>
         </svg>
-        Back to Calendar Events
-      <% end %>
-    </div>
+        <li>
+          <%= link_to google_path, class: "text-gray-500 hover:text-gray-700" do %>
+            Google
+          <% end %>
+        </li>
+        <svg class="w-4 h-4 text-gray-400" fill="currentColor" viewBox="0 0 20 20">
+          <path fill-rule="evenodd" d="M7.293 14.707a1 1 0 010-1.414L10.586 10 7.293 6.707a1 1 0 011.414-1.414l4 4a1 1 0 010 1.414l-4 4a1 1 0 01-1.414 0z" clip-rule="evenodd"/>
+        </svg>
+        <li>
+          <%= link_to calendar_events_path, class: "text-gray-500 hover:text-gray-700" do %>
+            Calendar Events
+          <% end %>
+        </li>
+        <svg class="w-4 h-4 text-gray-400" fill="currentColor" viewBox="0 0 20 20">
+          <path fill-rule="evenodd" d="M7.293 14.707a1 1 0 010-1.414L10.586 10 7.293 6.707a1 1 0 011.414-1.414l4 4a1 1 0 010 1.414l-4 4a1 1 0 01-1.414 0z" clip-rule="evenodd"/>
+        </svg>
+        <li>
+          <span class="text-gray-900 font-medium">Event Details</span>
+        </li>
+      </ol>
+    </nav>
 
     <div class="bg-white rounded-lg shadow-sm border border-gray-200">
       <!-- Header -->
