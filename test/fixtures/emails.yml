@@ -1,0 +1,27 @@
+# Read about fixtures at https://api.rubyonrails.org/classes/ActiveRecord/FixtureSet.html
+
+one:
+  user: one
+  gmail_id: MyString
+  subject: MyText
+  body: MyText
+  from_email: MyString
+  to_email: MyText
+  cc_email: MyText
+  bcc_email: MyText
+  received_at: 2025-07-05 19:40:43
+  thread_id: MyString
+  labels: MyText
+
+two:
+  user: two
+  gmail_id: MyString
+  subject: MyText
+  body: MyText
+  from_email: MyString
+  to_email: MyText
+  cc_email: MyText
+  bcc_email: MyText
+  received_at: 2025-07-05 19:40:43
+  thread_id: MyString
+  labels: MyText

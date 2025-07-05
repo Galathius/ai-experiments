@@ -1,0 +1,5 @@
+class EnablePgvectorExtension < ActiveRecord::Migration[8.0]
+  def change
+    enable_extension "vector" unless extension_enabled?("vector")
+  end
+end

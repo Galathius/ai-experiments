@@ -10,9 +10,10 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema[8.0].define(version: 2025_07_05_162858) do
+ActiveRecord::Schema[8.0].define(version: 2025_07_05_174234) do
   # These are extensions that must be enabled in order to support this database
   enable_extension "pg_catalog.plpgsql"
+  enable_extension "vector"
 
   create_table "chats", force: :cascade do |t|
     t.datetime "created_at", null: false
@@ -20,6 +21,29 @@ ActiveRecord::Schema[8.0].define(version: 2025_07_05_162858) do
     t.bigint "user_id", null: false
     t.string "title"
     t.index ["user_id"], name: "index_chats_on_user_id"
+  end
+
+  create_table "emails", force: :cascade do |t|
+    t.bigint "user_id", null: false
+    t.string "gmail_id", null: false
+    t.text "subject"
+    t.text "body"
+    t.string "from_email"
+    t.text "to_email"
+    t.text "cc_email"
+    t.text "bcc_email"
+    t.datetime "received_at"
+    t.string "thread_id"
+    t.text "labels"
+    t.vector "embedding", limit: 1536
+    t.datetime "created_at", null: false
+    t.datetime "updated_at", null: false
+    t.index ["embedding"], name: "index_emails_on_embedding", opclass: :vector_cosine_ops, using: :ivfflat
+    t.index ["from_email"], name: "index_emails_on_from_email"
+    t.index ["gmail_id"], name: "index_emails_on_gmail_id", unique: true
+    t.index ["received_at"], name: "index_emails_on_received_at"
+    t.index ["thread_id"], name: "index_emails_on_thread_id"
+    t.index ["user_id"], name: "index_emails_on_user_id"
   end
 
   create_table "messages", force: :cascade do |t|
@@ -37,6 +61,9 @@ ActiveRecord::Schema[8.0].define(version: 2025_07_05_162858) do
     t.bigint "user_id", null: false
     t.datetime "created_at", null: false
     t.datetime "updated_at", null: false
+    t.text "access_token"
+    t.text "refresh_token"
+    t.datetime "expires_at"
     t.index ["user_id"], name: "index_omni_auth_identities_on_user_id"
   end
 
@@ -61,6 +88,7 @@ ActiveRecord::Schema[8.0].define(version: 2025_07_05_162858) do
   end
 
   add_foreign_key "chats", "users"
+  add_foreign_key "emails", "users"
   add_foreign_key "messages", "chats"
   add_foreign_key "omni_auth_identities", "users"
   add_foreign_key "sessions", "users"

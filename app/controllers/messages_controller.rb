@@ -61,7 +61,62 @@ class MessagesController < ApplicationController
   end
   
   def generate_ai_response(user_input)
-    # Mock AI responses based on the mockup design
+    # Use RAG to find relevant emails
+    relevant_emails = find_relevant_emails(user_input)
+    
+    # Build context from emails
+    email_context = build_email_context(relevant_emails)
+    
+    # Generate AI response with email context
+    if email_context.present?
+      generate_rag_response(user_input, email_context)
+    else
+      generate_default_response(user_input)
+    end
+  end
+  
+  def find_relevant_emails(query)
+    return [] unless Current.user.emails.any?
+    
+    # Use semantic search to find relevant emails
+    begin
+      Current.user.emails.semantic_search(query, limit: 5)
+    rescue
+      # Fallback to basic search if semantic search fails
+      Current.user.emails.where("subject ILIKE ? OR body ILIKE ?", "%#{query}%", "%#{query}%").limit(5)
+    end
+  end
+  
+  def build_email_context(emails)
+    return "" if emails.empty?
+    
+    context = "Based on your email history:\n\n"
+    emails.each_with_index do |email, index|
+      context += "#{index + 1}. From: #{email.from_name} (#{email.from_email})\n"
+      context += "   Subject: #{email.subject}\n"
+      context += "   Date: #{email.received_at.strftime('%B %d, %Y')}\n"
+      context += "   Content: #{email.body.to_s.truncate(200)}\n\n"
+    end
+    
+    context
+  end
+  
+  def generate_rag_response(user_input, email_context)
+    # In a real implementation, this would call OpenAI with the context
+    # For now, provide contextual responses based on email content
+    
+    if user_input.downcase.include?('baseball') && email_context.downcase.include?('baseball')
+      "I found mentions of baseball in your emails! #{email_context}"
+    elsif user_input.downcase.include?('stock') || user_input.downcase.include?('aapl')
+      "I found relevant stock discussions in your emails. #{email_context}"
+    elsif user_input.downcase.include?('meeting') || user_input.downcase.include?('appointment')
+      build_meetings_response_with_context(email_context)
+    else
+      "Based on your email history, here's what I found:\n\n#{email_context}"
+    end
+  end
+  
+  def generate_default_response(user_input)
     case user_input.downcase
     when /meetings.*bill.*tim/, /find.*meetings.*bill.*tim/
       build_meetings_response
@@ -70,12 +125,19 @@ class MessagesController < ApplicationController
     when /summarize.*meetings/
       "I can summarize these meetings, schedule a follow up, and more!"
     when /hello|hi|hey/
-      "Hello! I can answer questions about any Jump meeting. What do you want to know?"
+      "Hello! I can answer questions about your emails and meetings. What do you want to know?"
     when /help/
-      "I can help you with:\n• Finding and analyzing meeting information\n• Scheduling appointments\n• Summarizing meetings\n• Managing your calendar\n\nWhat would you like to do?"
+      "I can help you with:\n• Finding and analyzing email information\n• Scheduling appointments\n• Summarizing meetings\n• Managing your calendar\n\nWhat would you like to do?"
     else
-      "I can answer questions about any Jump meeting. What do you want to know?"
+      "I can answer questions about your emails and meetings. Try asking about specific people or topics!"
     end
+  end
+  
+  def build_meetings_response_with_context(email_context)
+    response = "Sure, here are some recent meetings and related email discussions:\n\n"
+    response += build_meetings_response
+    response += "\n\nRelated emails:\n#{email_context}"
+    response
   end
   
   def build_meetings_response
