@@ -1,3 +1,10 @@
+GIT
+  remote: https://github.com/romanos/omniauth-hubspot.git
+  revision: 4710bd80d8af48023fb14c8259d9b0afe3a6109e
+  specs:
+    omniauth-hubspot-full (0.1.3)
+      omniauth-oauth2 (>= 1.7)
+
 GEM
   remote: https://rubygems.org/
   specs:
@@ -457,6 +464,7 @@ DEPENDENCIES
   neighbor
   omniauth
   omniauth-google-oauth2
+  omniauth-hubspot-full!
   omniauth-rails_csrf_protection
   pg (~> 1.1)
   propshaft

@@ -99,6 +99,27 @@ class MessagesController < ApplicationController
           description: event.description.to_s.truncate(200),
           relevance_score: embedding.vector ? 'high' : 'medium'
         }
+      when 'HubspotContact'
+        contact = embedding.embeddable
+        context_items << {
+          type: 'hubspot_contact',
+          name: contact.full_name,
+          email: contact.email,
+          company: contact.company,
+          phone: contact.phone,
+          notes: contact.notes.to_s.truncate(200),
+          relevance_score: embedding.vector ? 'high' : 'medium'
+        }
+      when 'HubspotNote'
+        note = embedding.embeddable
+        context_items << {
+          type: 'hubspot_note',
+          content: note.content.to_s.truncate(300),
+          created_date: note.created_date,
+          contact_name: note.hubspot_contact&.full_name,
+          contact_email: note.hubspot_contact&.email,
+          relevance_score: embedding.vector ? 'high' : 'medium'
+        }
       end
     end
     
@@ -132,10 +153,10 @@ class MessagesController < ApplicationController
   end
   
   def build_system_prompt(context_items)
-    base_prompt = "You are an AI assistant for a financial advisor. You help with managing emails, calendar events, and client relationships. You have access to the user's email and calendar data to provide informed responses.\n\n"
+    base_prompt = "You are an AI assistant for a financial advisor. You help with managing emails, calendar events, client relationships, and HubSpot CRM data. You have access to the user's email, calendar, and HubSpot contact/notes data to provide informed responses.\n\n"
     
     if context_items.any?
-      base_prompt += "Here is relevant context from the user's emails and calendar:\n\n"
+      base_prompt += "Here is relevant context from the user's emails, calendar, and HubSpot CRM:\n\n"
       
       context_items.each_with_index do |item, index|
         case item[:type]
@@ -152,6 +173,20 @@ class MessagesController < ApplicationController
           base_prompt += "Location: #{item[:location]}\n" if item[:location].present?
           base_prompt += "Attendees: #{item[:attendees].join(', ')}\n" if item[:attendees].any?
           base_prompt += "Description: #{item[:description]}\n" if item[:description].present?
+          base_prompt += "\n"
+        when 'hubspot_contact'
+          base_prompt += "HUBSPOT CONTACT #{index + 1}:\n"
+          base_prompt += "Name: #{item[:name]}\n"
+          base_prompt += "Email: #{item[:email]}\n" if item[:email].present?
+          base_prompt += "Company: #{item[:company]}\n" if item[:company].present?
+          base_prompt += "Phone: #{item[:phone]}\n" if item[:phone].present?
+          base_prompt += "Notes: #{item[:notes]}\n" if item[:notes].present?
+          base_prompt += "\n"
+        when 'hubspot_note'
+          base_prompt += "HUBSPOT NOTE #{index + 1}:\n"
+          base_prompt += "Date: #{item[:created_date].strftime('%B %d, %Y')}\n" if item[:created_date]
+          base_prompt += "About: #{item[:contact_name]} (#{item[:contact_email]})\n" if item[:contact_name].present?
+          base_prompt += "Content: #{item[:content]}\n"
           base_prompt += "\n"
         end
       end

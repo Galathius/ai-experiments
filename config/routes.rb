@@ -18,6 +18,11 @@ Rails.application.routes.draw do
     end
   end
   
+  get '/hubspot' => 'hubspot#index'
+  delete '/hubspot/disconnect' => 'hubspot#disconnect', as: :disconnect_hubspot
+  post '/hubspot/import_contacts' => 'hubspot#import_contacts', as: :import_hubspot_contacts
+  post '/hubspot/import_notes' => 'hubspot#import_notes', as: :import_hubspot_notes
+  
   resource :session
   resources :passwords, param: :token
   # Define your application routes per the DSL in https://guides.rubyonrails.org/routing.html

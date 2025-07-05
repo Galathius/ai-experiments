@@ -5,6 +5,8 @@ class User < ApplicationRecord
   has_many :chats, dependent: :destroy
   has_many :emails, dependent: :destroy
   has_many :calendar_events, dependent: :destroy
+  has_many :hubspot_contacts, dependent: :destroy
+  has_many :hubspot_notes, dependent: :destroy
 
   validates :email_address, presence: true,
     format: { with: URI::MailTo::EMAIL_REGEXP },
@@ -26,6 +28,18 @@ class User < ApplicationRecord
   def signed_in_with_oauth(auth)
     User.assign_names_from_auth(auth, self)
     save if first_name_changed? || last_name_changed?
+  end
+  
+  def google_identity
+    omni_auth_identities.find_by(provider: 'google_oauth2')
+  end
+  
+  def hubspot_identity
+    omni_auth_identities.find_by(provider: 'hubspot')
+  end
+  
+  def connected_to_hubspot?
+    hubspot_identity.present?
   end
 
   private

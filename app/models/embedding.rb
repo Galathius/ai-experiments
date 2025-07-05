@@ -9,6 +9,8 @@ class Embedding < ApplicationRecord
   
   scope :for_emails, -> { where(embeddable_type: 'Email') }
   scope :for_calendar_events, -> { where(embeddable_type: 'CalendarEvent') }
+  scope :for_hubspot_contacts, -> { where(embeddable_type: 'HubspotContact') }
+  scope :for_hubspot_notes, -> { where(embeddable_type: 'HubspotNote') }
   
   def self.semantic_search(query, limit: 10, types: nil)
     query_vector = EmbeddingService.generate_embedding(query)

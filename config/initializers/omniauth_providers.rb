@@ -8,4 +8,10 @@ Rails.application.config.middleware.use OmniAuth::Builder do
       access_type: 'offline',
       prompt: 'consent'
     }
+  provider :hubspot,
+    Rails.application.credentials.dig(:oauth, :hubspot, :client_id),
+    Rails.application.credentials.dig(:oauth, :hubspot, :client_secret),
+    {
+      scope: 'oauth crm.objects.contacts.read'
+    }
 end
