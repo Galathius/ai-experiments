@@ -10,10 +10,32 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema[8.0].define(version: 2025_07_05_174234) do
+ActiveRecord::Schema[8.0].define(version: 2025_07_05_210320) do
   # These are extensions that must be enabled in order to support this database
   enable_extension "pg_catalog.plpgsql"
   enable_extension "vector"
+
+  create_table "calendar_events", force: :cascade do |t|
+    t.bigint "user_id", null: false
+    t.string "google_event_id", null: false
+    t.text "title"
+    t.text "description"
+    t.datetime "start_time", null: false
+    t.datetime "end_time"
+    t.string "location"
+    t.text "attendees"
+    t.string "creator_email"
+    t.string "status"
+    t.vector "embedding", limit: 1536
+    t.datetime "created_at", null: false
+    t.datetime "updated_at", null: false
+    t.index ["embedding"], name: "index_calendar_events_on_embedding", opclass: :vector_cosine_ops, using: :ivfflat
+    t.index ["end_time"], name: "index_calendar_events_on_end_time"
+    t.index ["google_event_id"], name: "index_calendar_events_on_google_event_id", unique: true
+    t.index ["start_time"], name: "index_calendar_events_on_start_time"
+    t.index ["status"], name: "index_calendar_events_on_status"
+    t.index ["user_id"], name: "index_calendar_events_on_user_id"
+  end
 
   create_table "chats", force: :cascade do |t|
     t.datetime "created_at", null: false
@@ -87,6 +109,7 @@ ActiveRecord::Schema[8.0].define(version: 2025_07_05_174234) do
     t.index ["email_address"], name: "index_users_on_email_address", unique: true
   end
 
+  add_foreign_key "calendar_events", "users"
   add_foreign_key "chats", "users"
   add_foreign_key "emails", "users"
   add_foreign_key "messages", "chats"

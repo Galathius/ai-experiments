@@ -24,4 +24,15 @@ class EmbeddingService
     email.update!(embedding: embedding)
     embedding
   end
+  
+  def self.generate_embedding_for_calendar_event(calendar_event)
+    content = calendar_event.content_for_embedding
+    return nil if content.blank?
+    
+    embedding = generate_embedding(content)
+    return nil unless embedding
+    
+    calendar_event.update!(embedding: embedding)
+    embedding
+  end
 end

@@ -25,6 +25,7 @@ gem "omniauth"
 gem "omniauth-rails_csrf_protection"
 gem "omniauth-google-oauth2"
 gem "google-apis-gmail_v1"
+gem "google-apis-calendar_v3"
 gem "neighbor"
 gem "ruby-openai"
 

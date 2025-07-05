@@ -123,6 +123,8 @@ GEM
       raabro (~> 1.4)
     globalid (1.2.1)
       activesupport (>= 6.1)
+    google-apis-calendar_v3 (0.48.0)
+      google-apis-core (>= 0.15.0, < 2.a)
     google-apis-core (0.18.0)
       addressable (~> 2.5, >= 2.5.1)
       googleauth (~> 1.9)
@@ -448,6 +450,7 @@ DEPENDENCIES
   capybara
   debug
   dockerfile-rails (>= 1.7)
+  google-apis-calendar_v3
   google-apis-gmail_v1
   importmap-rails
   jbuilder
