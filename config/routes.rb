@@ -1,5 +1,10 @@
 Rails.application.routes.draw do
-  resources :chats
+  resources :chats, only: [:index, :show, :destroy] do
+    resources :messages, only: [:create]
+  end
+  
+  # For creating messages without specifying a chat (creates new chat)
+  resources :messages, only: [:create]
   resource :session
   resources :passwords, param: :token
   # Define your application routes per the DSL in https://guides.rubyonrails.org/routing.html
