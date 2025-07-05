@@ -1,0 +1,28 @@
+<!-- Minimal Header -->
+<header class="bg-white shadow-sm border-b border-gray-200">
+  <div class="<%= container_class || 'max-w-6xl' %> mx-auto px-4 py-3">
+    <div class="flex items-center justify-between">
+      <div class="flex items-center space-x-4">
+        <h1 class="text-xl font-bold text-gray-900">Jump AI Assistant</h1>
+        <span class="text-gray-400">•</span>
+        <span class="text-gray-600"><%= page_title %></span>
+      </div>
+      
+      <div class="flex items-center space-x-4">
+        <div class="flex items-center space-x-2">
+          <div class="w-6 h-6 bg-blue-600 rounded-full flex items-center justify-center">
+            <span class="text-white text-xs font-medium">
+              <%= Current.user.first_name&.first&.upcase || Current.user.email_address&.first&.upcase %>
+            </span>
+          </div>
+          <span class="text-sm text-gray-700">
+            <%= [Current.user.first_name, Current.user.last_name].compact.join(' ').presence || 'User' %>
+          </span>
+        </div>
+        <%= button_to session_path, method: :delete, class: "text-sm text-gray-600 hover:text-gray-900 transition-colors", title: "Sign out" do %>
+          Sign out
+        <% end %>
+      </div>
+    </div>
+  </div>
+</header>

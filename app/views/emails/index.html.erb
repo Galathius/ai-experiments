@@ -1,7 +1,8 @@
 <div class="min-h-screen bg-gray-50">
+  <%= render "layouts/minimal_header", page_title: "Email Archive", container_class: "max-w-6xl" %>
+
   <div class="max-w-6xl mx-auto px-4 py-8">
     <div class="flex items-center justify-between mb-8">
-      <h1 class="text-3xl font-bold text-gray-900">Email Archive</h1>
       
       <div class="flex items-center space-x-4">
         <%= button_to import_emails_path, method: :post, class: "inline-flex items-center px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-lg transition-colors" do %>
