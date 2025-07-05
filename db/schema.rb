@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema[8.0].define(version: 2025_07_05_210320) do
+ActiveRecord::Schema[8.0].define(version: 2025_07_05_211908) do
   # These are extensions that must be enabled in order to support this database
   enable_extension "pg_catalog.plpgsql"
   enable_extension "vector"
@@ -26,10 +26,8 @@ ActiveRecord::Schema[8.0].define(version: 2025_07_05_210320) do
     t.text "attendees"
     t.string "creator_email"
     t.string "status"
-    t.vector "embedding", limit: 1536
     t.datetime "created_at", null: false
     t.datetime "updated_at", null: false
-    t.index ["embedding"], name: "index_calendar_events_on_embedding", opclass: :vector_cosine_ops, using: :ivfflat
     t.index ["end_time"], name: "index_calendar_events_on_end_time"
     t.index ["google_event_id"], name: "index_calendar_events_on_google_event_id", unique: true
     t.index ["start_time"], name: "index_calendar_events_on_start_time"
@@ -57,15 +55,25 @@ ActiveRecord::Schema[8.0].define(version: 2025_07_05_210320) do
     t.datetime "received_at"
     t.string "thread_id"
     t.text "labels"
-    t.vector "embedding", limit: 1536
     t.datetime "created_at", null: false
     t.datetime "updated_at", null: false
-    t.index ["embedding"], name: "index_emails_on_embedding", opclass: :vector_cosine_ops, using: :ivfflat
     t.index ["from_email"], name: "index_emails_on_from_email"
     t.index ["gmail_id"], name: "index_emails_on_gmail_id", unique: true
     t.index ["received_at"], name: "index_emails_on_received_at"
     t.index ["thread_id"], name: "index_emails_on_thread_id"
     t.index ["user_id"], name: "index_emails_on_user_id"
+  end
+
+  create_table "embeddings", force: :cascade do |t|
+    t.string "embeddable_type", null: false
+    t.bigint "embeddable_id", null: false
+    t.text "content", null: false
+    t.vector "vector", limit: 1536, null: false
+    t.datetime "created_at", null: false
+    t.datetime "updated_at", null: false
+    t.index ["embeddable_type", "embeddable_id"], name: "index_embeddings_on_embeddable"
+    t.index ["embeddable_type", "embeddable_id"], name: "index_embeddings_on_embeddable_type_and_embeddable_id", unique: true
+    t.index ["vector"], name: "index_embeddings_on_vector", opclass: :vector_cosine_ops, using: :ivfflat
   end
 
   create_table "messages", force: :cascade do |t|

@@ -1,7 +1,6 @@
 class CalendarEvent < ApplicationRecord
   belongs_to :user
-  
-  has_neighbors :embedding
+  has_one :embedding, as: :embeddable, dependent: :destroy
   
   validates :google_event_id, presence: true, uniqueness: true
   validates :title, presence: true
@@ -56,9 +55,8 @@ class CalendarEvent < ApplicationRecord
   
   def self.semantic_search(query, limit: 10)
     # This will be used for RAG - find events similar to the query
-    embedding = EmbeddingService.generate_embedding(query)
-    return none unless embedding
-    
-    nearest_neighbors(:embedding, embedding, distance: :cosine).limit(limit)
+    embeddings = Embedding.semantic_search(query, limit: limit, types: ['CalendarEvent'])
+    event_ids = embeddings.pluck(:embeddable_id)
+    where(id: event_ids)
   end
 end

@@ -1,0 +1,13 @@
+# Read about fixtures at https://api.rubyonrails.org/classes/ActiveRecord/FixtureSet.html
+
+one:
+  embeddable: one
+  embeddable_type: Embeddable
+  content: MyText
+  vector: 
+
+two:
+  embeddable: two
+  embeddable_type: Embeddable
+  content: MyText
+  vector: 

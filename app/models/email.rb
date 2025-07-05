@@ -1,7 +1,6 @@
 class Email < ApplicationRecord
   belongs_to :user
-  
-  has_neighbors :embedding
+  has_one :embedding, as: :embeddable, dependent: :destroy
   
   validates :gmail_id, presence: true, uniqueness: true
   validates :from_email, presence: true
@@ -71,10 +70,8 @@ class Email < ApplicationRecord
   
   def self.semantic_search(query, limit: 10)
     # This will be used for RAG - find emails similar to the query
-    # First we need to generate an embedding for the query
-    embedding = EmbeddingService.generate_embedding(query)
-    return none unless embedding
-    
-    nearest_neighbors(:embedding, embedding, distance: :cosine).limit(limit)
+    embeddings = Embedding.semantic_search(query, limit: limit, types: ['Email'])
+    email_ids = embeddings.pluck(:embeddable_id)
+    where(id: email_ids)
   end
 end
