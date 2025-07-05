@@ -9,61 +9,30 @@ export default class extends Controller {
   }
   
   setupEventListeners() {
-    // Handle desktop form submission
-    const desktopForm = document.getElementById('chat-form')
-    if (desktopForm) {
-      desktopForm.addEventListener('submit', (e) => this.handleSubmit(e))
-    }
+    // Handle form submission (both desktop and mobile)
+    document.querySelectorAll('#chat-form, #mobile-chat-form').forEach(form => {
+      form.addEventListener('submit', (e) => this.handleSubmit(e))
+    })
     
-    // Handle mobile form submission
-    const mobileForm = document.getElementById('mobile-chat-form')
-    if (mobileForm) {
-      mobileForm.addEventListener('submit', (e) => this.handleSubmit(e))
-    }
-    
-    // Handle Enter key for desktop input
-    const desktopInput = document.getElementById('message-input')
-    if (desktopInput) {
-      desktopInput.addEventListener('keydown', (e) => {
+    // Handle Enter key for all inputs
+    document.querySelectorAll('#message-input, #mobile-message-input').forEach(input => {
+      input.addEventListener('keydown', (e) => {
         if (e.key === 'Enter' && !e.shiftKey) {
           e.preventDefault()
           this.handleSubmit(e)
         }
       })
-    }
+    })
     
-    // Handle Enter key for mobile input
-    const mobileInput = document.getElementById('mobile-message-input')
-    if (mobileInput) {
-      mobileInput.addEventListener('keydown', (e) => {
-        if (e.key === 'Enter' && !e.shiftKey) {
-          e.preventDefault()
-          this.handleSubmit(e)
-        }
-      })
-    }
-    
-    // Handle desktop chat switching
-    document.querySelectorAll('.chat-item').forEach(item => {
+    // Handle chat switching (both desktop and mobile)
+    document.querySelectorAll('.chat-item, .mobile-chat-item').forEach(item => {
       item.addEventListener('click', (e) => this.switchChat(e))
     })
     
-    // Handle mobile chat switching
-    document.querySelectorAll('.mobile-chat-item').forEach(item => {
-      item.addEventListener('click', (e) => this.switchMobileChat(e))
+    // Handle new thread buttons (both desktop and mobile)
+    document.querySelectorAll('#new-thread-btn, #mobile-new-thread-btn').forEach(btn => {
+      btn.addEventListener('click', () => this.startNewThread())
     })
-    
-    // Handle desktop new thread button
-    const newThreadBtn = document.getElementById('new-thread-btn')
-    if (newThreadBtn) {
-      newThreadBtn.addEventListener('click', () => this.startNewThread())
-    }
-    
-    // Handle mobile new thread button
-    const mobileNewThreadBtn = document.getElementById('mobile-new-thread-btn')
-    if (mobileNewThreadBtn) {
-      mobileNewThreadBtn.addEventListener('click', () => this.startNewThread())
-    }
     
     // Handle mobile tabs
     const mobileChatTab = document.getElementById('mobile-chat-tab')
@@ -81,23 +50,16 @@ export default class extends Controller {
   async handleSubmit(e) {
     e.preventDefault()
     
-    // Get the active input (desktop or mobile)
-    const desktopInput = document.getElementById('message-input')
-    const mobileInput = document.getElementById('mobile-message-input')
+    // Get the active input based on screen size
+    const activeInput = window.innerWidth >= 768 
+      ? document.getElementById('message-input')
+      : document.getElementById('mobile-message-input')
     
-    let activeInput = null
-    let content = ''
+    if (!activeInput) return
     
-    // Determine which input is visible/active
-    if (desktopInput && window.innerWidth >= 768) {
-      activeInput = desktopInput
-      content = desktopInput.value.trim()
-    } else if (mobileInput && window.innerWidth < 768) {
-      activeInput = mobileInput
-      content = mobileInput.value.trim()
-    }
+    const content = activeInput.value.trim()
     
-    if (!content || !activeInput) return
+    if (!content) return
     
     // Clear input immediately
     activeInput.value = ''
@@ -262,14 +224,19 @@ export default class extends Controller {
       currentChatInput.value = chatId
     }
     
-    // Update UI to show selected chat
-    document.querySelectorAll('.chat-item').forEach(item => {
+    // Update UI to show selected chat (both desktop and mobile)
+    document.querySelectorAll('.chat-item, .mobile-chat-item').forEach(item => {
       item.classList.remove('bg-blue-50', 'border', 'border-blue-200')
     })
     chatItem.classList.add('bg-blue-50', 'border', 'border-blue-200')
     
     // Load messages for this chat
     await this.loadChatMessages(chatId)
+    
+    // Switch to chat view on mobile
+    if (window.innerWidth < 768) {
+      this.showMobileChatView()
+    }
   }
   
   async loadChatMessages(chatId) {
@@ -335,13 +302,12 @@ export default class extends Controller {
     this.showMobileChatView()
     
     // Focus on the active input
-    const desktopInput = document.getElementById('message-input')
-    const mobileInput = document.getElementById('mobile-message-input')
+    const activeInput = window.innerWidth >= 768 
+      ? document.getElementById('message-input')
+      : document.getElementById('mobile-message-input')
     
-    if (desktopInput && window.innerWidth >= 768) {
-      desktopInput.focus()
-    } else if (mobileInput && window.innerWidth < 768) {
-      mobileInput.focus()
+    if (activeInput) {
+      activeInput.focus()
     }
   }
   
@@ -426,20 +392,4 @@ export default class extends Controller {
     }
   }
   
-  async switchMobileChat(e) {
-    const chatItem = e.currentTarget
-    const chatId = chatItem.dataset.chatId
-    
-    // Update current chat ID
-    const currentChatInput = document.getElementById('current-chat-id')
-    if (currentChatInput) {
-      currentChatInput.value = chatId
-    }
-    
-    // Load messages for this chat
-    await this.loadChatMessages(chatId)
-    
-    // Switch to chat view on mobile
-    this.showMobileChatView()
-  }
 }
