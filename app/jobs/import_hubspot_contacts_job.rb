@@ -7,7 +7,7 @@ class ImportHubspotContactsJob < ApplicationJob
     
     return unless hubspot_identity
 
-    hubspot_service = HubspotService.new(hubspot_identity.access_token)
+    hubspot_service = HubspotService.new(hubspot_identity.access_token, hubspot_identity)
     
     after = nil
     imported_count = 0
@@ -20,7 +20,7 @@ class ImportHubspotContactsJob < ApplicationJob
       break if contacts.empty?
       
       contacts.each do |contact_data|
-        import_contact(user, contact_data)
+        import_contact(user, contact_data, hubspot_service)
         imported_count += 1
       end
       
@@ -36,7 +36,7 @@ class ImportHubspotContactsJob < ApplicationJob
 
   private
 
-  def import_contact(user, contact_data)
+  def import_contact(user, contact_data, hubspot_service)
     properties = contact_data['properties'] || {}
     
     contact = user.hubspot_contacts.find_or_initialize_by(
@@ -48,9 +48,51 @@ class ImportHubspotContactsJob < ApplicationJob
       last_name: properties['lastname'],
       email: properties['email'],
       company: properties['company'],
-      phone: properties['phone'],
-      notes: properties['notes']
+      phone: properties['phone']
     )
+    
+    # Fetch and store notes for this contact
+    begin
+      Rails.logger.info "Fetching notes for contact #{contact_data['id']}"
+      notes_data = hubspot_service.get_contact_notes(contact_data['id'])
+      Rails.logger.info "Found #{notes_data.length} notes for contact #{contact_data['id']}"
+      
+      # Combine all notes into a single text field
+      if notes_data.any?
+        notes_text = notes_data.map do |note|
+          note_properties = note['properties'] || {}
+          Rails.logger.info "Note properties: #{note_properties.inspect}"
+          
+          body = note_properties['hs_note_body'] || ''
+          # Try different timestamp properties
+          timestamp = note_properties['hs_timestamp'] || note_properties['hs_createdate'] || ''
+          
+          # Format: "Date: Note content"
+          if timestamp.present? && body.present?
+            begin
+              # Handle ISO date format from hs_createdate
+              if timestamp.include?('T')
+                date = DateTime.parse(timestamp).strftime('%Y-%m-%d')
+              else
+                # Handle millisecond timestamp from hs_timestamp
+                date = Time.at(timestamp.to_i / 1000).strftime('%Y-%m-%d')
+              end
+              "#{date}: #{body}"
+            rescue
+              body
+            end
+          else
+            body
+          end
+        end.compact.reject(&:empty?).join("\n\n")
+        
+        contact.notes = notes_text if notes_text.present?
+      end
+    rescue => e
+      Rails.logger.error "Failed to fetch notes for contact #{contact_data['id']}: #{e.message}"
+      Rails.logger.error "Error details: #{e.backtrace.first(5).join(', ')}"
+      # Continue without notes
+    end
     
     if contact.save
       # Generate embedding
