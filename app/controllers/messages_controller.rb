@@ -61,96 +61,111 @@ class MessagesController < ApplicationController
   end
   
   def generate_ai_response(user_input)
-    # Use RAG to find relevant emails
-    relevant_emails = find_relevant_emails(user_input)
+    # Use RAG to find relevant context from emails and calendar events
+    relevant_context = find_relevant_context(user_input)
     
-    # Build context from emails
-    email_context = build_email_context(relevant_emails)
-    
-    # Generate AI response with email context
-    if email_context.present?
-      generate_rag_response(user_input, email_context)
-    else
-      generate_default_response(user_input)
-    end
+    # Generate AI response using OpenAI with context
+    generate_openai_response(user_input, relevant_context)
   end
   
-  def find_relevant_emails(query)
-    return [] unless Current.user.emails.any?
+  def find_relevant_context(query)
+    # Search across all embedded content (emails and calendar events)
+    relevant_embeddings = Embedding.semantic_search(query, limit: 8)
     
-    # Use semantic search to find relevant emails
+    context_items = []
+    
+    relevant_embeddings.each do |embedding|
+      case embedding.embeddable_type
+      when 'Email'
+        email = embedding.embeddable
+        context_items << {
+          type: 'email',
+          from: email.from_name || email.from_email,
+          from_email: email.from_email,
+          subject: email.subject,
+          date: email.received_at,
+          content: email.body.to_s.truncate(300),
+          relevance_score: embedding.vector ? 'high' : 'medium'
+        }
+      when 'CalendarEvent'
+        event = embedding.embeddable
+        context_items << {
+          type: 'calendar_event',
+          title: event.title,
+          start_time: event.start_time,
+          end_time: event.end_time,
+          location: event.location,
+          attendees: event.attendees_array,
+          description: event.description.to_s.truncate(200),
+          relevance_score: embedding.vector ? 'high' : 'medium'
+        }
+      end
+    end
+    
+    context_items
+  end
+  
+  def generate_openai_response(user_input, context_items)
+    # Build system prompt with context
+    system_prompt = build_system_prompt(context_items)
+    
+    client = OpenAI::Client.new(access_token: Rails.application.credentials.openai.api_key)
+    
     begin
-      Current.user.emails.semantic_search(query, limit: 5)
-    rescue
-      # Fallback to basic search if semantic search fails
-      Current.user.emails.where("subject ILIKE ? OR body ILIKE ?", "%#{query}%", "%#{query}%").limit(5)
+      response = client.chat(
+        parameters: {
+          model: "gpt-4o-mini",
+          messages: [
+            { role: "system", content: system_prompt },
+            { role: "user", content: user_input }
+          ],
+          temperature: 0.7,
+          max_tokens: 1000
+        }
+      )
+      
+      response.dig("choices", 0, "message", "content") || "I apologize, but I couldn't generate a response at this time."
+    rescue => e
+      Rails.logger.error "OpenAI API error: #{e.message}"
+      "I'm sorry, I'm having trouble accessing my AI capabilities right now. Please try again in a moment."
     end
   end
   
-  def build_email_context(emails)
-    return "" if emails.empty?
+  def build_system_prompt(context_items)
+    base_prompt = "You are an AI assistant for a financial advisor. You help with managing emails, calendar events, and client relationships. You have access to the user's email and calendar data to provide informed responses.\n\n"
     
-    context = "Based on your email history:\n\n"
-    emails.each_with_index do |email, index|
-      context += "#{index + 1}. From: #{email.from_name} (#{email.from_email})\n"
-      context += "   Subject: #{email.subject}\n"
-      context += "   Date: #{email.received_at.strftime('%B %d, %Y')}\n"
-      context += "   Content: #{email.body.to_s.truncate(200)}\n\n"
-    end
-    
-    context
-  end
-  
-  def generate_rag_response(user_input, email_context)
-    # In a real implementation, this would call OpenAI with the context
-    # For now, provide contextual responses based on email content
-    
-    if user_input.downcase.include?('baseball') && email_context.downcase.include?('baseball')
-      "I found mentions of baseball in your emails! #{email_context}"
-    elsif user_input.downcase.include?('stock') || user_input.downcase.include?('aapl')
-      "I found relevant stock discussions in your emails. #{email_context}"
-    elsif user_input.downcase.include?('meeting') || user_input.downcase.include?('appointment')
-      build_meetings_response_with_context(email_context)
+    if context_items.any?
+      base_prompt += "Here is relevant context from the user's emails and calendar:\n\n"
+      
+      context_items.each_with_index do |item, index|
+        case item[:type]
+        when 'email'
+          base_prompt += "EMAIL #{index + 1}:\n"
+          base_prompt += "From: #{item[:from]} (#{item[:from_email]})\n"
+          base_prompt += "Subject: #{item[:subject]}\n"
+          base_prompt += "Date: #{item[:date].strftime('%B %d, %Y')}\n"
+          base_prompt += "Content: #{item[:content]}\n\n"
+        when 'calendar_event'
+          base_prompt += "CALENDAR EVENT #{index + 1}:\n"
+          base_prompt += "Title: #{item[:title]}\n"
+          base_prompt += "Date: #{item[:start_time].strftime('%B %d, %Y at %I:%M %p')}\n"
+          base_prompt += "Location: #{item[:location]}\n" if item[:location].present?
+          base_prompt += "Attendees: #{item[:attendees].join(', ')}\n" if item[:attendees].any?
+          base_prompt += "Description: #{item[:description]}\n" if item[:description].present?
+          base_prompt += "\n"
+        end
+      end
     else
-      "Based on your email history, here's what I found:\n\n#{email_context}"
+      base_prompt += "No specific context was found for this query, but you can still provide helpful assistance based on your general knowledge.\n\n"
     end
-  end
-  
-  def generate_default_response(user_input)
-    case user_input.downcase
-    when /meetings.*bill.*tim/, /find.*meetings.*bill.*tim/
-      build_meetings_response
-    when /schedule.*appointment/
-      "I'll help you schedule an appointment. Let me check your calendar and available times."
-    when /summarize.*meetings/
-      "I can summarize these meetings, schedule a follow up, and more!"
-    when /hello|hi|hey/
-      "Hello! I can answer questions about your emails and meetings. What do you want to know?"
-    when /help/
-      "I can help you with:\n• Finding and analyzing email information\n• Scheduling appointments\n• Summarizing meetings\n• Managing your calendar\n\nWhat would you like to do?"
-    else
-      "I can answer questions about your emails and meetings. Try asking about specific people or topics!"
-    end
-  end
-  
-  def build_meetings_response_with_context(email_context)
-    response = "Sure, here are some recent meetings and related email discussions:\n\n"
-    response += build_meetings_response
-    response += "\n\nRelated emails:\n#{email_context}"
-    response
-  end
-  
-  def build_meetings_response
-    response = "Sure, here are some recent meetings that you, Bill, and Tim all attended. I found 2 in May. 📅\n\n"
-    response += "**8 Thursday**\n\n"
-    response += "**12 - 1:30pm**\n"
-    response += "**Quarterly All Team Meeting**\n"
-    response += "👥 5 attendees\n\n"
-    response += "**16 Friday**\n\n"
-    response += "**1 - 2pm**\n"
-    response += "**Strategy review**\n"
-    response += "👥 2 attendees\n\n"
-    response += "I can summarize these meetings, schedule a follow up, and more!"
-    response
+    
+    base_prompt += "Instructions:\n"
+    base_prompt += "- Use the provided context to give accurate, specific answers\n"
+    base_prompt += "- If asked about people, reference their emails or calendar events\n"
+    base_prompt += "- Be helpful and professional\n"
+    base_prompt += "- If you don't have enough information, say so clearly\n"
+    base_prompt += "- For scheduling requests, mention you'd need calendar access to check availability\n"
+    
+    base_prompt
   end
 end
