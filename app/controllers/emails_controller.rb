@@ -5,7 +5,7 @@ class EmailsController < ApplicationController
 
   def import
     google_identity = Current.user.google_identity
-    
+
     unless google_identity
       redirect_to emails_path, alert: "Please connect your Google account first."
       return

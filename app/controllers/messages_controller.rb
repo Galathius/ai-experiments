@@ -1,43 +1,43 @@
 class MessagesController < ApplicationController
   before_action :set_chat
-  
+
   def create
     # Create user message
-    @user_message = @chat.messages.build(message_params.merge(role: 'user'))
-    
+    @user_message = @chat.messages.build(message_params.merge(role: "user"))
+
     if @user_message.save
       # Update chat title from first message if needed
       if @chat.messages.count == 1
         @chat.generate_title_from_first_message
         @chat.save
       end
-      
+
       # Generate AI response
       ai_response = generate_ai_response(@user_message.content)
-      
+
       @ai_message = @chat.messages.create!(
         content: ai_response,
-        role: 'assistant'
+        role: "assistant"
       )
-      
+
       # Update chat's updated_at timestamp
       @chat.touch
-      
+
       render json: {
         user_message: message_json(@user_message),
         ai_message: message_json(@ai_message),
         chat_id: @chat.id
       }
     else
-      render json: { 
+      render json: {
         error: "Failed to send message",
-        errors: @user_message.errors.full_messages 
+        errors: @user_message.errors.full_messages
       }, status: 422
     end
   end
-  
+
   private
-  
+
   def set_chat
     if params[:chat_id].present?
       @chat = Current.user.chats.find(params[:chat_id])
@@ -46,11 +46,11 @@ class MessagesController < ApplicationController
       @chat = Current.user.chats.create!(title: "New Chat")
     end
   end
-  
+
   def message_params
     params.require(:message).permit(:content)
   end
-  
+
   def message_json(message)
     {
       id: message.id,
@@ -59,78 +59,78 @@ class MessagesController < ApplicationController
       created_at: message.created_at
     }
   end
-  
+
   def generate_ai_response(user_input)
     # Use RAG to find relevant context from emails and calendar events
     relevant_context = find_relevant_context(user_input)
-    
+
     # Generate AI response using OpenAI with context
     generate_openai_response(user_input, relevant_context)
   end
-  
+
   def find_relevant_context(query)
     # Search across all embedded content (emails and calendar events)
     relevant_embeddings = Embedding.semantic_search(query, limit: 8)
-    
+
     context_items = []
-    
+
     relevant_embeddings.each do |embedding|
       case embedding.embeddable_type
-      when 'Email'
+      when "Email"
         email = embedding.embeddable
         context_items << {
-          type: 'email',
+          type: "email",
           from: email.from_name || email.from_email,
           from_email: email.from_email,
           subject: email.subject,
           date: email.received_at,
           content: email.body.to_s.truncate(300),
-          relevance_score: embedding.vector ? 'high' : 'medium'
+          relevance_score: embedding.vector ? "high" : "medium"
         }
-      when 'CalendarEvent'
+      when "CalendarEvent"
         event = embedding.embeddable
         context_items << {
-          type: 'calendar_event',
+          type: "calendar_event",
           title: event.title,
           start_time: event.start_time,
           end_time: event.end_time,
           location: event.location,
           attendees: event.attendees_array,
           description: event.description.to_s.truncate(200),
-          relevance_score: embedding.vector ? 'high' : 'medium'
+          relevance_score: embedding.vector ? "high" : "medium"
         }
-      when 'HubspotContact'
+      when "HubspotContact"
         contact = embedding.embeddable
         context_items << {
-          type: 'hubspot_contact',
+          type: "hubspot_contact",
           name: contact.full_name,
           email: contact.email,
           company: contact.company,
           phone: contact.phone,
-          relevance_score: embedding.vector ? 'high' : 'medium'
+          relevance_score: embedding.vector ? "high" : "medium"
         }
-      when 'HubspotNote'
+      when "HubspotNote"
         note = embedding.embeddable
         context_items << {
-          type: 'hubspot_note',
+          type: "hubspot_note",
           content: note.content.to_s.truncate(300),
           created_date: note.created_date,
           contact_name: note.hubspot_contact&.full_name,
           contact_email: note.hubspot_contact&.email,
-          relevance_score: embedding.vector ? 'high' : 'medium'
+          relevance_score: embedding.vector ? "high" : "medium"
         }
       end
     end
-    
+
     context_items
   end
-  
+
   def generate_openai_response(user_input, context_items)
     # Build system prompt with context
     system_prompt = build_system_prompt(context_items)
-    
+
     client = OpenAI::Client.new(access_token: Rails.application.credentials.openai.api_key)
-    
+
     begin
       # Initial chat completion with tools
       response = client.chat(
@@ -146,9 +146,9 @@ class MessagesController < ApplicationController
           max_tokens: 1000
         }
       )
-      
+
       message = response.dig("choices", 0, "message")
-      
+
       # Check if the AI wants to use tools
       if message["tool_calls"]
         handle_tool_calls(client, system_prompt, user_input, message)
@@ -160,18 +160,18 @@ class MessagesController < ApplicationController
       "I'm sorry, I'm having trouble accessing my AI capabilities right now. Please try again in a moment."
     end
   end
-  
+
   def handle_tool_calls(client, system_prompt, user_input, assistant_message)
     # Execute the tool calls
     tool_results = ToolExecutor.execute_tool_calls(assistant_message["tool_calls"], Current.user)
-    
+
     # Build the conversation history with tool results
     messages = [
       { role: "system", content: system_prompt },
       { role: "user", content: user_input },
       { role: "assistant", content: assistant_message["content"], tool_calls: assistant_message["tool_calls"] }
     ]
-    
+
     # Add tool results
     tool_results.each do |result|
       messages << {
@@ -180,7 +180,7 @@ class MessagesController < ApplicationController
         content: result[:content]
       }
     end
-    
+
     # Get final response from AI with tool results
     response = client.chat(
       parameters: {
@@ -190,33 +190,33 @@ class MessagesController < ApplicationController
         max_tokens: 1000
       }
     )
-    
+
     response.dig("choices", 0, "message", "content") || "I completed the requested actions."
   rescue => e
     Rails.logger.error "Tool calling error: #{e.message}"
     "I attempted to perform the requested actions but encountered an error. Please check your connections and try again."
   end
-  
+
   def build_system_prompt(context_items)
     base_prompt = "You are an AI assistant for a financial advisor. You help with managing emails, calendar events, client relationships, and HubSpot CRM data. You have access to the user's email, calendar, and HubSpot contact/notes data to provide informed responses.\n\n"
-    
+
     base_prompt += "You can perform actions like:\n"
     base_prompt += "- Send emails using send_email\n"
     base_prompt += "- Create calendar events using create_calendar_event\n"
     base_prompt += "- Add notes to HubSpot contacts using add_hubspot_note\n\n"
-    
+
     if context_items.any?
       base_prompt += "Here is relevant context from the user's emails, calendar, and HubSpot CRM:\n\n"
-      
+
       context_items.each_with_index do |item, index|
         case item[:type]
-        when 'email'
+        when "email"
           base_prompt += "EMAIL #{index + 1}:\n"
           base_prompt += "From: #{item[:from]} (#{item[:from_email]})\n"
           base_prompt += "Subject: #{item[:subject]}\n"
           base_prompt += "Date: #{item[:date].strftime('%B %d, %Y')}\n"
           base_prompt += "Content: #{item[:content]}\n\n"
-        when 'calendar_event'
+        when "calendar_event"
           base_prompt += "CALENDAR EVENT #{index + 1}:\n"
           base_prompt += "Title: #{item[:title]}\n"
           base_prompt += "Date: #{item[:start_time].strftime('%B %d, %Y at %I:%M %p')}\n"
@@ -224,7 +224,7 @@ class MessagesController < ApplicationController
           base_prompt += "Attendees: #{item[:attendees].join(', ')}\n" if item[:attendees].any?
           base_prompt += "Description: #{item[:description]}\n" if item[:description].present?
           base_prompt += "\n"
-        when 'hubspot_contact'
+        when "hubspot_contact"
           base_prompt += "HUBSPOT CONTACT #{index + 1}:\n"
           base_prompt += "Name: #{item[:name]}\n"
           base_prompt += "Email: #{item[:email]}\n" if item[:email].present?
@@ -232,7 +232,7 @@ class MessagesController < ApplicationController
           base_prompt += "Phone: #{item[:phone]}\n" if item[:phone].present?
           base_prompt += "Notes: #{item[:notes]}\n" if item[:notes].present?
           base_prompt += "\n"
-        when 'hubspot_note'
+        when "hubspot_note"
           base_prompt += "HUBSPOT NOTE #{index + 1}:\n"
           base_prompt += "Date: #{item[:created_date].strftime('%B %d, %Y')}\n" if item[:created_date]
           base_prompt += "About: #{item[:contact_name]} (#{item[:contact_email]})\n" if item[:contact_name].present?
@@ -243,14 +243,14 @@ class MessagesController < ApplicationController
     else
       base_prompt += "No specific context was found for this query, but you can still provide helpful assistance based on your general knowledge.\n\n"
     end
-    
+
     base_prompt += "Instructions:\n"
     base_prompt += "- Use the provided context to give accurate, specific answers\n"
     base_prompt += "- If asked about people, reference their emails or calendar events\n"
     base_prompt += "- Be helpful and professional\n"
     base_prompt += "- If you don't have enough information, say so clearly\n"
     base_prompt += "- For scheduling requests, mention you'd need calendar access to check availability\n"
-    
+
     base_prompt
   end
 end

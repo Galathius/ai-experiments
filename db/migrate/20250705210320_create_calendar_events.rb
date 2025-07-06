@@ -15,7 +15,7 @@ class CreateCalendarEvents < ActiveRecord::Migration[8.0]
 
       t.timestamps
     end
-    
+
     add_index :calendar_events, :google_event_id, unique: true
     add_index :calendar_events, :start_time
     add_index :calendar_events, :end_time

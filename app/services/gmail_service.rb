@@ -1,5 +1,5 @@
-require 'google/apis/gmail_v1'
-require 'googleauth'
+require "google/apis/gmail_v1"
+require "googleauth"
 
 class GmailService
   def initialize(user)
@@ -13,9 +13,9 @@ class GmailService
 
     # Get list of message IDs
     message_list = @gmail.list_user_messages(
-      'me',
+      "me",
       max_results: limit,
-      q: '-in:spam -in:trash' # Exclude spam and trash
+      q: "-in:spam -in:trash" # Exclude spam and trash
     )
 
     return [] unless message_list.messages
@@ -25,22 +25,22 @@ class GmailService
       begin
         # Skip if already imported
         next if Email.exists?(gmail_id: message.id)
-        
+
         # Get full message details with body content
-        full_message = @gmail.get_user_message('me', message.id, format: 'full')
-        
+        full_message = @gmail.get_user_message("me", message.id, format: "full")
+
         # Extract email data
         email_data = extract_email_data(full_message)
-        
+
         # Create email record
         email = @user.emails.create!(email_data)
-        
+
         # Generate and store embedding
         EmbeddingService.generate_embedding_for_email(email)
-        
+
         emails_imported += 1
         puts "Imported email: #{email.subject}"
-        
+
       rescue => e
         puts "Error importing email #{message.id}: #{e.message}"
       end
@@ -52,7 +52,7 @@ class GmailService
   private
 
   def build_authorization
-    identity = @user.omni_auth_identities.find_by(provider: 'google_oauth2')
+    identity = @user.omni_auth_identities.find_by(provider: "google_oauth2")
     return nil unless identity&.access_token
 
     auth = Google::Auth::UserRefreshCredentials.new(
@@ -79,18 +79,18 @@ class GmailService
 
   def extract_email_data(message)
     headers = message.payload.headers
-    
+
     {
       gmail_id: message.id,
       thread_id: message.thread_id,
-      subject: get_header_value(headers, 'Subject'),
-      from_email: get_header_value(headers, 'From'),
-      to_email: get_header_value(headers, 'To'),
-      cc_email: get_header_value(headers, 'Cc'),
-      bcc_email: get_header_value(headers, 'Bcc'),
-      received_at: parse_date(get_header_value(headers, 'Date')),
+      subject: get_header_value(headers, "Subject"),
+      from_email: get_header_value(headers, "From"),
+      to_email: get_header_value(headers, "To"),
+      cc_email: get_header_value(headers, "Cc"),
+      bcc_email: get_header_value(headers, "Bcc"),
+      received_at: parse_date(get_header_value(headers, "Date")),
       body: extract_body(message.payload),
-      labels: message.label_ids&.join(',')
+      labels: message.label_ids&.join(",")
     }
   end
 
@@ -108,38 +108,38 @@ class GmailService
 
   def extract_body(payload)
     return extract_body_from_parts(payload.parts) if payload.parts&.any?
-    
+
     # Single part message
     if payload.body&.data
       payload.body.data
     else
-      ''
+      ""
     end
   rescue => e
     Rails.logger.error "Error extracting email body: #{e.message}"
-    ''
+    ""
   end
 
   def extract_body_from_parts(parts)
     # Look for text/plain first, then text/html
-    text_part = find_part_by_mime_type(parts, 'text/plain')
-    html_part = find_part_by_mime_type(parts, 'text/html')
-    
+    text_part = find_part_by_mime_type(parts, "text/plain")
+    html_part = find_part_by_mime_type(parts, "text/html")
+
     if text_part&.body&.data
       text_part.body.data
     elsif html_part&.body&.data
       # Strip HTML tags for plain text
       html_content = html_part.body.data
-      html_content.gsub(/<[^>]*>/, ' ').gsub(/\s+/, ' ').strip
+      html_content.gsub(/<[^>]*>/, " ").gsub(/\s+/, " ").strip
     else
-      ''
+      ""
     end
   end
 
   def find_part_by_mime_type(parts, mime_type)
     parts.each do |part|
       return part if part.mime_type == mime_type
-      
+
       # Recursively search in nested parts
       if part.parts&.any?
         found = find_part_by_mime_type(part.parts, mime_type)
@@ -148,5 +148,4 @@ class GmailService
     end
     nil
   end
-
 end

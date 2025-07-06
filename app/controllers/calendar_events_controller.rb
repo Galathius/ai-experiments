@@ -5,7 +5,7 @@ class CalendarEventsController < ApplicationController
 
   def import
     google_identity = Current.user.google_identity
-    
+
     unless google_identity
       redirect_to calendar_events_path, alert: "Please connect your Google account first."
       return

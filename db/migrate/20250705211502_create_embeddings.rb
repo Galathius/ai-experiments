@@ -7,8 +7,8 @@ class CreateEmbeddings < ActiveRecord::Migration[8.0]
 
       t.timestamps
     end
-    
-    add_index :embeddings, [:embeddable_type, :embeddable_id], unique: true
+
+    add_index :embeddings, [ :embeddable_type, :embeddable_id ], unique: true
     add_index :embeddings, :vector, using: :ivfflat, opclass: :vector_cosine_ops
   end
 end

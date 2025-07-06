@@ -1,5 +1,5 @@
-require 'google/apis/calendar_v3'
-require 'googleauth'
+require "google/apis/calendar_v3"
+require "googleauth"
 
 class CalendarService
   def initialize(user)
@@ -12,13 +12,13 @@ class CalendarService
     return 0 unless @calendar.authorization
 
     events_imported = 0
-    
+
     # Get events from primary calendar
     result = @calendar.list_events(
-      'primary',
+      "primary",
       max_results: limit,
       single_events: true,
-      order_by: 'startTime',
+      order_by: "startTime",
       time_min: (Time.current - 30.days).iso8601,
       time_max: (Time.current + 90.days).iso8601
     )
@@ -32,22 +32,22 @@ class CalendarService
       begin
         # Skip if already imported
         next if existing_ids.include?(event.id)
-        
+
         # Skip events without start time
         next unless event.start
-        
+
         # Extract event data
         event_data = extract_event_data(event)
-        
+
         # Create calendar event record
         calendar_event = @user.calendar_events.create!(event_data)
-        
+
         # Generate and store embedding
         EmbeddingService.generate_embedding_for_calendar_event(calendar_event)
-        
+
         events_imported += 1
         puts "Imported event: #{calendar_event.title}"
-        
+
       rescue => e
         puts "Error importing event #{event.id}: #{e.message}"
         Rails.logger.error "Error importing event #{event.id}: #{e.message}"
@@ -60,7 +60,7 @@ class CalendarService
   private
 
   def build_authorization
-    identity = @user.omni_auth_identities.find_by(provider: 'google_oauth2')
+    identity = @user.omni_auth_identities.find_by(provider: "google_oauth2")
     return nil unless identity&.access_token
 
     auth = Google::Auth::UserRefreshCredentials.new(
@@ -88,7 +88,7 @@ class CalendarService
   def extract_event_data(event)
     {
       google_event_id: event.id,
-      title: event.summary || 'No Title',
+      title: event.summary || "No Title",
       description: event.description,
       start_time: parse_datetime(event.start),
       end_time: parse_datetime(event.end),
@@ -101,7 +101,7 @@ class CalendarService
 
   def parse_datetime(datetime_obj)
     return nil unless datetime_obj
-    
+
     if datetime_obj.date_time
       datetime_obj.date_time
     elsif datetime_obj.date
@@ -114,7 +114,7 @@ class CalendarService
 
   def extract_attendees(attendees)
     return nil unless attendees&.any?
-    
-    attendees.map { |attendee| attendee.email }.compact.join(', ')
+
+    attendees.map { |attendee| attendee.email }.compact.join(", ")
   end
 end

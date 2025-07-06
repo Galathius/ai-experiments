@@ -30,15 +30,15 @@ class User < ApplicationRecord
     User.assign_names_from_auth(auth, self)
     save if first_name_changed? || last_name_changed?
   end
-  
+
   def google_identity
-    omni_auth_identities.find_by(provider: 'google_oauth2')
+    omni_auth_identities.find_by(provider: "google_oauth2")
   end
-  
+
   def hubspot_identity
-    omni_auth_identities.find_by(provider: 'hubspot')
+    omni_auth_identities.find_by(provider: "hubspot")
   end
-  
+
   def connected_to_hubspot?
     hubspot_identity.present?
   end

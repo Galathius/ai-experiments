@@ -22,7 +22,7 @@ class HubspotController < ApplicationController
 
   def import_contacts
     hubspot_identity = Current.user.hubspot_identity
-    
+
     unless hubspot_identity
       redirect_to hubspot_path, alert: "Please connect your HubSpot account first."
       return
@@ -34,7 +34,7 @@ class HubspotController < ApplicationController
 
   def import_notes
     hubspot_identity = Current.user.hubspot_identity
-    
+
     unless hubspot_identity
       redirect_to hubspot_path, alert: "Please connect your HubSpot account first."
       return

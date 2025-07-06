@@ -22,7 +22,7 @@ class GoogleController < ApplicationController
 
   def import_emails
     google_identity = Current.user.google_identity
-    
+
     unless google_identity
       redirect_to google_path, alert: "Please connect your Google account first."
       return
@@ -34,7 +34,7 @@ class GoogleController < ApplicationController
 
   def import_calendar
     google_identity = Current.user.google_identity
-    
+
     unless google_identity
       redirect_to google_path, alert: "Please connect your Google account first."
       return

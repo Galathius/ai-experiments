@@ -16,7 +16,7 @@ class CreateEmails < ActiveRecord::Migration[8.0]
 
       t.timestamps
     end
-    
+
     add_index :emails, :gmail_id, unique: true
     add_index :emails, :thread_id
     add_index :emails, :received_at

@@ -4,7 +4,7 @@ class ImportCalendarEventsJob < ApplicationJob
   def perform(user_id)
     user = User.find(user_id)
     calendar_service = CalendarService.new(user)
-    
+
     begin
       events_imported = calendar_service.import_events(limit: 50)
       Rails.logger.info "Imported #{events_imported} calendar events for user #{user.id}"
