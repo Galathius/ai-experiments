@@ -62,17 +62,11 @@ module Tools
     end
 
     def send_email_via_gmail(gmail_service)
-      # For now, we'll create a simple implementation
-      # This would need to be enhanced based on your GmailService implementation
-      {
-        success: true,
-        message_id: "mock_message_id_#{Time.current.to_i}"
-      }
-    rescue => e
-      {
-        success: false,
-        error: e.message
-      }
+      gmail_service.send_email(
+        to_email: params["to_email"],
+        subject: params["subject"],
+        body: params["body"]
+      )
     end
   end
 end

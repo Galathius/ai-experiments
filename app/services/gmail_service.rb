@@ -1,5 +1,6 @@
 require "google/apis/gmail_v1"
 require "googleauth"
+require "mail"
 
 class GmailService
   def initialize(user)
@@ -49,7 +50,52 @@ class GmailService
     emails_imported
   end
 
+  def send_email(to_email:, subject:, body:)
+    return { success: false, error: "Gmail authorization not available" } unless @gmail.authorization
+
+    begin
+      # Create the email message
+      message = create_email_message(to_email: to_email, subject: subject, body: body)
+
+      # Send the email
+      result = @gmail.send_user_message("me", message)
+      
+      {
+        success: true,
+        message_id: result.id,
+        thread_id: result.thread_id
+      }
+    rescue => e
+      Rails.logger.error "Failed to send email: #{e.message}"
+      Rails.logger.error "Error details: #{e.backtrace.first(5).join('\n')}"
+      {
+        success: false,
+        error: e.message
+      }
+    end
+  end
+
   private
+
+  def create_email_message(to_email:, subject:, body:)
+    # Get user's email address
+    user_email = @user.email_address
+    
+    # Use the Mail gem to create a properly formatted email
+    mail = Mail.new do
+      from user_email
+      to to_email
+      subject subject
+      body body
+    end
+    
+    # Create Gmail message object
+    message = Google::Apis::GmailV1::Message.new(
+      raw: mail.to_s
+    )
+    
+    message
+  end
 
   def build_authorization
     identity = @user.omni_auth_identities.find_by(provider: "google_oauth2")

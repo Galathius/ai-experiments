@@ -4,7 +4,7 @@ Rails.application.config.middleware.use OmniAuth::Builder do
     Rails.application.credentials.dig(:oauth, :google, :client_id),
     Rails.application.credentials.dig(:oauth, :google, :client_secret),
     {
-      scope: "email,profile,https://www.googleapis.com/auth/gmail.readonly,https://www.googleapis.com/auth/calendar",
+      scope: "email,profile,https://www.googleapis.com/auth/gmail.readonly,https://www.googleapis.com/auth/gmail.send,https://www.googleapis.com/auth/calendar",
       access_type: "offline",
       prompt: "consent"
     }
