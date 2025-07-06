@@ -30,6 +30,10 @@ module Tools
               description: {
                 type: "string",
                 description: "Event description/details"
+              },
+              location: {
+                type: "string",
+                description: "Event location (optional)"
               }
             },
             required: [ "title", "start_time" ]
@@ -81,13 +85,15 @@ module Tools
       
       attendees = params["attendees"] || []
       description = params["description"]
+      location = params["location"]
 
       calendar_service.create_event(
         title: params["title"],
         start_time: start_time,
         end_time: end_time,
         description: description,
-        attendees: attendees
+        attendees: attendees,
+        location: location
       )
     end
   end
