@@ -29,6 +29,7 @@ gem "google-apis-gmail_v1"
 gem "google-apis-calendar_v3"
 gem "neighbor"
 gem "ruby-openai"
+gem "inline_svg"
 
 # Windows does not include zoneinfo files, so bundle the tzinfo-data gem
 gem "tzinfo-data", platforms: %i[ windows jruby ]

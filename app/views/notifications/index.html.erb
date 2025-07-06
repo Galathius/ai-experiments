@@ -10,9 +10,7 @@
       <div class="flex items-center">
         <div class="flex-shrink-0">
           <div class="w-8 h-8 bg-blue-100 rounded-full flex items-center justify-center">
-            <svg class="w-4 h-4 text-blue-600" fill="currentColor" viewBox="0 0 20 20">
-              <path d="M10 2L3 7v11a2 2 0 002 2h10a2 2 0 002-2V7l-7-5z"></path>
-            </svg>
+            <%= inline_svg "icons/home.svg", class: "w-4 h-4 text-blue-600" %>
           </div>
         </div>
         <div class="ml-4">
@@ -26,9 +24,7 @@
       <div class="flex items-center">
         <div class="flex-shrink-0">
           <div class="w-8 h-8 bg-red-100 rounded-full flex items-center justify-center">
-            <svg class="w-4 h-4 text-red-600" fill="currentColor" viewBox="0 0 20 20">
-              <path d="M8.257 3.099c.765-1.36 2.722-1.36 3.486 0l5.58 9.92c.75 1.334-.213 2.98-1.742 2.98H4.42c-1.53 0-2.493-1.646-1.743-2.98l5.58-9.92z"></path>
-            </svg>
+            <%= inline_svg "icons/warning.svg", class: "w-4 h-4 text-red-600" %>
           </div>
         </div>
         <div class="ml-4">
@@ -42,9 +38,7 @@
       <div class="flex items-center">
         <div class="flex-shrink-0">
           <div class="w-8 h-8 bg-yellow-100 rounded-full flex items-center justify-center">
-            <svg class="w-4 h-4 text-yellow-600" fill="currentColor" viewBox="0 0 20 20">
-              <path d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"></path>
-            </svg>
+            <%= inline_svg "icons/check.svg", class: "w-4 h-4 text-yellow-600" %>
           </div>
         </div>
         <div class="ml-4">
@@ -58,9 +52,7 @@
       <div class="flex items-center">
         <div class="flex-shrink-0">
           <div class="w-8 h-8 bg-green-100 rounded-full flex items-center justify-center">
-            <svg class="w-4 h-4 text-green-600" fill="currentColor" viewBox="0 0 20 20">
-              <path d="M8 7V3a4 4 0 118 0v4a1 1 0 102 0V3a6 6 0 10-12 0v4H4a2 2 0 00-2 2v6a2 2 0 002 2h12a2 2 0 002-2V9a2 2 0 00-2-2H8z"></path>
-            </svg>
+            <%= inline_svg "icons/calendar.svg", class: "w-4 h-4 text-green-600" %>
           </div>
         </div>
         <div class="ml-4">
@@ -74,9 +66,7 @@
       <div class="flex items-center">
         <div class="flex-shrink-0">
           <div class="w-8 h-8 bg-purple-100 rounded-full flex items-center justify-center">
-            <svg class="w-4 h-4 text-purple-600" fill="currentColor" viewBox="0 0 20 20">
-              <path d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 00-1.175 0l-2.8 2.034c-.784.57-1.838-.197-1.539-1.118l1.07-3.292a1 1 0 00-.364-1.118L2.98 8.72c-.783-.57-.38-1.81.588-1.81h3.461a1 1 0 00.951-.69l1.07-3.292z"></path>
-            </svg>
+            <%= inline_svg "icons/star.svg", class: "w-4 h-4 text-purple-600" %>
           </div>
         </div>
         <div class="ml-4">
@@ -103,33 +93,23 @@
                 <% case notification.notification_type %>
                 <% when 'task_overdue' %>
                   <div class="w-8 h-8 bg-red-100 rounded-full flex items-center justify-center mr-3">
-                    <svg class="w-4 h-4 text-red-600" fill="currentColor" viewBox="0 0 20 20">
-                      <path d="M8.257 3.099c.765-1.36 2.722-1.36 3.486 0l5.58 9.92c.75 1.334-.213 2.98-1.742 2.98H4.42c-1.53 0-2.493-1.646-1.743-2.98l5.58-9.92z"></path>
-                    </svg>
+                    <%= inline_svg "icons/warning.svg", class: "w-4 h-4 text-red-600" %>
                   </div>
                 <% when 'task_reminder' %>
                   <div class="w-8 h-8 bg-yellow-100 rounded-full flex items-center justify-center mr-3">
-                    <svg class="w-4 h-4 text-yellow-600" fill="currentColor" viewBox="0 0 20 20">
-                      <path d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"></path>
-                    </svg>
+                    <%= inline_svg "icons/check.svg", class: "w-4 h-4 text-yellow-600" %>
                   </div>
                 <% when 'calendar_reminder' %>
                   <div class="w-8 h-8 bg-green-100 rounded-full flex items-center justify-center mr-3">
-                    <svg class="w-4 h-4 text-green-600" fill="currentColor" viewBox="0 0 20 20">
-                      <path d="M8 7V3a4 4 0 118 0v4a1 1 0 102 0V3a6 6 0 10-12 0v4H4a2 2 0 00-2 2v6a2 2 0 002 2h12a2 2 0 002-2V9a2 2 0 00-2-2H8z"></path>
-                    </svg>
+                    <%= inline_svg "icons/calendar.svg", class: "w-4 h-4 text-green-600" %>
                   </div>
                 <% when 'proactive_suggestion' %>
                   <div class="w-8 h-8 bg-purple-100 rounded-full flex items-center justify-center mr-3">
-                    <svg class="w-4 h-4 text-purple-600" fill="currentColor" viewBox="0 0 20 20">
-                      <path d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 00-1.175 0l-2.8 2.034c-.784.57-1.838-.197-1.539-1.118l1.07-3.292a1 1 0 00-.364-1.118L2.98 8.72c-.783-.57-.38-1.81.588-1.81h3.461a1 1 0 00.951-.69l1.07-3.292z"></path>
-                    </svg>
+                    <%= inline_svg "icons/star.svg", class: "w-4 h-4 text-purple-600" %>
                   </div>
                 <% else %>
                   <div class="w-8 h-8 bg-gray-100 rounded-full flex items-center justify-center mr-3">
-                    <svg class="w-4 h-4 text-gray-600" fill="currentColor" viewBox="0 0 20 20">
-                      <path d="M10 2L3 7v11a2 2 0 002 2h10a2 2 0 002-2V7l-7-5z"></path>
-                    </svg>
+                    <%= inline_svg "icons/bell.svg", class: "w-4 h-4 text-gray-600" %>
                   </div>
                 <% end %>
 
@@ -172,9 +152,7 @@
       
       <% if @notifications.empty? %>
         <div class="text-center py-12">
-          <svg class="mx-auto h-12 w-12 text-gray-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 17h5l-5 5v-5zM4 3h11l4 4v7h-3V9h-4V5H7v11H4V3z"></path>
-          </svg>
+          <%= inline_svg "icons/bell.svg", class: "w-12 h-12 mx-auto text-gray-400" %>
           <h3 class="mt-2 text-sm font-medium text-gray-900">No notifications</h3>
           <p class="mt-1 text-sm text-gray-500">You're all caught up! The AI will notify you of important updates.</p>
         </div>
