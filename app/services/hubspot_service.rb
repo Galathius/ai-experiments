@@ -116,6 +116,40 @@ class HubspotService
     end
   end
 
+  def create_note(contact_id, note_content)
+    url = URI("#{API_BASE}/crm/v3/objects/notes")
+
+    body = {
+      properties: {
+        hs_note_body: note_content,
+        hs_timestamp: Time.current.to_i * 1000 # HubSpot expects milliseconds
+      },
+      associations: [
+        {
+          to: {
+            id: contact_id
+          },
+          types: [
+            {
+              associationCategory: "HUBSPOT_DEFINED",
+              associationTypeId: 202 # Note to Contact association
+            }
+          ]
+        }
+      ]
+    }.to_json
+
+    response = make_request(url, method: :post, body: body)
+
+    if response.is_a?(Net::HTTPSuccess)
+      JSON.parse(response.body)
+    else
+      Rails.logger.error "HubSpot API error creating note: #{response.code} #{response.message}"
+      Rails.logger.error "Response body: #{response.body}"
+      nil
+    end
+  end
+
   private
 
   def make_request(url, method: :get, body: nil, retry_count: 0)

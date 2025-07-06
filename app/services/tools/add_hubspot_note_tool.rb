@@ -67,13 +67,34 @@ module Tools
     end
 
     def create_hubspot_note(contact)
-      # Create a local note record
+      # Create note in HubSpot via API
+      hubspot_service = HubspotService.new(
+        user.hubspot_identity.access_token,
+        user.hubspot_identity
+      )
+      
+      hubspot_response = hubspot_service.create_note(
+        contact.hubspot_contact_id,
+        params["note_content"]
+      )
+      
+      unless hubspot_response
+        raise "Failed to create note in HubSpot"
+      end
+      
+      # Create local note record with HubSpot ID
+      created_date = if hubspot_response.dig("properties", "hs_createdate")
+                      Time.parse(hubspot_response.dig("properties", "hs_createdate"))
+                    else
+                      Time.current
+                    end
+                    
       note = user.hubspot_notes.create!(
         hubspot_contact: contact,
         hubspot_contact_id: contact.hubspot_contact_id,
         content: params["note_content"],
-        created_date: Time.current,
-        hubspot_note_id: "local_note_#{Time.current.to_i}"
+        created_date: created_date,
+        hubspot_note_id: hubspot_response["id"]
       )
 
       # Generate embedding for the note
