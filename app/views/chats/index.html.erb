@@ -80,11 +80,19 @@
           <% end %>
           
           <!-- Tasks Link -->
-          <%= link_to tasks_path, class: "w-full flex items-center justify-center gap-2 px-4 py-2 bg-gray-100 hover:bg-gray-200 text-gray-700 rounded-lg transition-colors" do %>
+          <%= link_to tasks_path, class: "w-full flex items-center justify-center gap-2 px-4 py-2 bg-gray-100 hover:bg-gray-200 text-gray-700 rounded-lg transition-colors mb-2" do %>
             <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
               <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"></path>
             </svg>
             Tasks
+          <% end %>
+          
+          <!-- Notifications Link -->
+          <%= link_to notifications_path, class: "w-full flex items-center justify-center gap-2 px-4 py-2 bg-gray-100 hover:bg-gray-200 text-gray-700 rounded-lg transition-colors" do %>
+            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 17h5l-5 5v-5zM4.216 15.216l2.12-2.121m0 0l-2.12-2.122m2.12 2.122L2 15.216m13.216-10l2.121-2.121m0 0l-2.121-2.122m2.121 2.122L13.216 5.216m6.586 8.485a11.943 11.943 0 01-6.77 6.77"></path>
+            </svg>
+            Notifications
           <% end %>
         </div>
         

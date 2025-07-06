@@ -9,6 +9,7 @@ class User < ApplicationRecord
   has_many :hubspot_notes, dependent: :destroy
   has_many :action_logs, dependent: :destroy
   has_many :tasks, dependent: :destroy
+  has_many :notifications, dependent: :destroy
 
   validates :email_address, presence: true,
     format: { with: URI::MailTo::EMAIL_REGEXP },

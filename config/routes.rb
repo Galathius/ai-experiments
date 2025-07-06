@@ -1,4 +1,5 @@
 Rails.application.routes.draw do
+  resources :notifications, only: [ :index, :show, :update ]
   resources :tasks, only: [ :index, :show ]
   resources :action_logs, only: [ :index ]
   resources :chats, only: [ :index, :show, :destroy ] do

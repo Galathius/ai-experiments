@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema[8.0].define(version: 2025_07_06_115430) do
+ActiveRecord::Schema[8.0].define(version: 2025_07_06_121644) do
   # These are extensions that must be enabled in order to support this database
   enable_extension "pg_catalog.plpgsql"
   enable_extension "vector"
@@ -119,6 +119,21 @@ ActiveRecord::Schema[8.0].define(version: 2025_07_06_115430) do
     t.index ["chat_id"], name: "index_messages_on_chat_id"
   end
 
+  create_table "notifications", force: :cascade do |t|
+    t.bigint "user_id", null: false
+    t.string "title", null: false
+    t.text "message", null: false
+    t.string "notification_type", null: false
+    t.datetime "read_at"
+    t.jsonb "metadata", default: {}
+    t.datetime "created_at", null: false
+    t.datetime "updated_at", null: false
+    t.index ["created_at"], name: "index_notifications_on_created_at"
+    t.index ["notification_type"], name: "index_notifications_on_notification_type"
+    t.index ["user_id", "read_at"], name: "index_notifications_on_user_id_and_read_at"
+    t.index ["user_id"], name: "index_notifications_on_user_id"
+  end
+
   create_table "omni_auth_identities", force: :cascade do |t|
     t.string "uid"
     t.string "provider"
@@ -176,6 +191,7 @@ ActiveRecord::Schema[8.0].define(version: 2025_07_06_115430) do
   add_foreign_key "hubspot_contacts", "users"
   add_foreign_key "hubspot_notes", "users"
   add_foreign_key "messages", "chats"
+  add_foreign_key "notifications", "users"
   add_foreign_key "omni_auth_identities", "users"
   add_foreign_key "sessions", "users"
   add_foreign_key "tasks", "users"

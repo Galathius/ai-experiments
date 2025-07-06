@@ -224,6 +224,12 @@ class MessagesController < ApplicationController
       base_prompt += "CURRENT TASK STATUS:\n#{task_context}\n\n"
     end
 
+    # Add notification context
+    notification_context = get_notification_context
+    if notification_context.present?
+      base_prompt += "RECENT NOTIFICATIONS:\n#{notification_context}\n\n"
+    end
+
     if context_items.any?
       base_prompt += "Here is relevant context from the user's emails, calendar, and HubSpot CRM:\n\n"
 
@@ -276,5 +282,17 @@ class MessagesController < ApplicationController
   def get_task_context
     task_manager = TaskManager.new(Current.user)
     task_manager.get_context_for_ai
+  end
+
+  def get_notification_context
+    recent_notifications = Current.user.notifications.unread.recent.limit(5)
+    return nil unless recent_notifications.any?
+
+    context = []
+    recent_notifications.each do |notification|
+      context << "#{notification.title}: #{notification.message}"
+    end
+    
+    context.join("\n")
   end
 end
