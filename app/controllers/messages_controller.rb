@@ -132,14 +132,19 @@ class MessagesController < ApplicationController
     client = OpenAI::Client.new(access_token: Rails.application.credentials.openai.api_key)
 
     begin
+      # Build conversation history including previous messages
+      messages = [{ role: "system", content: system_prompt }]
+      
+      # Add previous messages from the chat (excluding the current user message which will be added below)
+      @chat.messages.order(:created_at).each do |message|
+        messages << { role: message.role, content: message.content }
+      end
+
       # Initial chat completion with tools
       response = client.chat(
         parameters: {
           model: "gpt-4o-mini",
-          messages: [
-            { role: "system", content: system_prompt },
-            { role: "user", content: user_input }
-          ],
+          messages: messages,
           tools: ToolRegistry.available_tools,
           tool_choice: "auto",
           temperature: 0.7,
@@ -166,11 +171,15 @@ class MessagesController < ApplicationController
     tool_results = ToolExecutor.execute_tool_calls(assistant_message["tool_calls"], Current.user)
 
     # Build the conversation history with tool results
-    messages = [
-      { role: "system", content: system_prompt },
-      { role: "user", content: user_input },
-      { role: "assistant", content: assistant_message["content"], tool_calls: assistant_message["tool_calls"] }
-    ]
+    messages = [{ role: "system", content: system_prompt }]
+    
+    # Add previous messages from the chat
+    @chat.messages.order(:created_at).each do |message|
+      messages << { role: message.role, content: message.content }
+    end
+    
+    # Add the assistant's tool call response
+    messages << { role: "assistant", content: assistant_message["content"], tool_calls: assistant_message["tool_calls"] }
 
     # Add tool results
     tool_results.each do |result|
