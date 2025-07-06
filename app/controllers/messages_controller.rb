@@ -2,6 +2,9 @@ class MessagesController < ApplicationController
   before_action :set_chat
 
   def create
+    # Ensure data is fresh before AI query
+    ensure_fresh_data_for_ai_query
+    
     # Create user message
     @user_message = @chat.messages.build(message_params.merge(role: "user"))
 
@@ -294,5 +297,37 @@ class MessagesController < ApplicationController
     end
     
     context.join("\n")
+  end
+  
+  def ensure_fresh_data_for_ai_query
+    # Check if we need to sync data before responding to user
+    return unless Current.user.google_identity || Current.user.hubspot_identity
+    
+    # Quick check if data might be stale (over 1 hour old)
+    stale_threshold = 1.hour.ago
+    
+    needs_sync = false
+    
+    if Current.user.google_identity
+      last_email = Current.user.emails.maximum(:updated_at)
+      last_calendar = Current.user.calendar_events.maximum(:updated_at)
+      
+      needs_sync = true if last_email.nil? || last_email < stale_threshold
+      needs_sync = true if last_calendar.nil? || last_calendar < stale_threshold
+    end
+    
+    if Current.user.hubspot_identity
+      last_contact = Current.user.hubspot_contacts.maximum(:updated_at)
+      last_note = Current.user.hubspot_notes.maximum(:updated_at)
+      
+      needs_sync = true if last_contact.nil? || last_contact < stale_threshold
+      needs_sync = true if last_note.nil? || last_note < stale_threshold
+    end
+    
+    # Trigger background sync if needed (force: true for immediate sync)
+    if needs_sync
+      Rails.logger.info "Triggering immediate sync for user #{Current.user.id} before AI query"
+      AutoSyncJob.perform_now(Current.user.id, force: true)
+    end
   end
 end

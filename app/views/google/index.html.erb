@@ -84,17 +84,46 @@
           </div>
         </div>
         
+        <!-- Sync Status -->
+        <div class="mt-6 bg-gray-50 rounded-lg p-4">
+          <h3 class="text-sm font-medium text-gray-900 mb-3">Auto-Sync Status</h3>
+          <div class="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">
+            <div class="flex items-center justify-between">
+              <span class="text-sm text-gray-600">Emails:</span>
+              <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium <%= @sync_status[:emails] == 'Up to date' ? 'bg-green-100 text-green-800' : 'bg-yellow-100 text-yellow-800' %>">
+                <%= @sync_status[:emails] %>
+              </span>
+            </div>
+            <div class="flex items-center justify-between">
+              <span class="text-sm text-gray-600">Calendar:</span>
+              <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium <%= @sync_status[:calendar] == 'Up to date' ? 'bg-green-100 text-green-800' : 'bg-yellow-100 text-yellow-800' %>">
+                <%= @sync_status[:calendar] %>
+              </span>
+            </div>
+          </div>
+          <% if @last_email_sync || @last_calendar_sync %>
+            <div class="text-xs text-gray-500">
+              <% if @last_email_sync %>
+                Last email sync: <%= time_ago_in_words(@last_email_sync) %> ago<br>
+              <% end %>
+              <% if @last_calendar_sync %>
+                Last calendar sync: <%= time_ago_in_words(@last_calendar_sync) %> ago
+              <% end %>
+            </div>
+          <% end %>
+        </div>
+        
         <!-- Actions -->
         <div class="space-y-4">
           <div class="flex flex-wrap gap-4">
             <%= button_to import_google_emails_path, method: :post, class: "inline-flex items-center px-4 py-2 border border-transparent text-sm font-medium rounded-md shadow-sm text-white bg-blue-600 hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500" do %>
               <%= inline_svg "icons/download.svg", class: "w-4 h-4 mr-2" %>
-              Import Emails
+              Import Emails (Manual)
             <% end %>
             
             <%= button_to import_google_calendar_path, method: :post, class: "inline-flex items-center px-4 py-2 border border-transparent text-sm font-medium rounded-md shadow-sm text-white bg-green-600 hover:bg-green-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-green-500" do %>
               <%= inline_svg "icons/download.svg", class: "w-4 h-4 mr-2" %>
-              Import Calendar
+              Import Calendar (Manual)
             <% end %>
           </div>
           

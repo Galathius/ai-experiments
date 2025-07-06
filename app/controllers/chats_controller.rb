@@ -1,5 +1,6 @@
 class ChatsController < ApplicationController
   before_action :set_chat, only: [ :show, :destroy ]
+  before_action :trigger_auto_sync, only: [ :index ]
 
   def index
     @chats = Current.user.chats.recent
@@ -41,5 +42,12 @@ class ChatsController < ApplicationController
 
   def set_chat
     @chat = Current.user.chats.find(params[:id])
+  end
+  
+  def trigger_auto_sync
+    # Trigger background sync if user has connected accounts
+    if Current.user.google_identity || Current.user.hubspot_identity
+      AutoSyncJob.perform_later(Current.user.id)
+    end
   end
 end

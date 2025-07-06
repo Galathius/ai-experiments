@@ -4,7 +4,7 @@ class Notification < ApplicationRecord
   validates :title, presence: true
   validates :message, presence: true
   validates :notification_type, inclusion: { 
-    in: %w[task_reminder task_overdue calendar_reminder system_alert proactive_suggestion] 
+    in: %w[task_reminder task_overdue calendar_reminder system_alert proactive_suggestion data_sync sync_error] 
   }
 
   scope :unread, -> { where(read_at: nil) }
