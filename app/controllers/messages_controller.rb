@@ -107,7 +107,6 @@ class MessagesController < ApplicationController
           email: contact.email,
           company: contact.company,
           phone: contact.phone,
-          notes: contact.notes.to_s.truncate(200),
           relevance_score: embedding.vector ? 'high' : 'medium'
         }
       when 'HubspotNote'

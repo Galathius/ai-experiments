@@ -57,7 +57,11 @@ class HubspotService
   
   def get_notes(limit: 100, after: nil)
     url = URI("#{API_BASE}/crm/v3/objects/notes")
-    params = { limit: limit }
+    params = { 
+      limit: limit,
+      properties: 'hs_note_body,hs_timestamp,hs_createdate,hs_lastmodifieddate',
+      associations: 'contacts'
+    }
     params[:after] = after if after
     url.query = URI.encode_www_form(params)
     

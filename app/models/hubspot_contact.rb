@@ -15,7 +15,6 @@ class HubspotContact < ApplicationRecord
     content_parts << "Email: #{email}" if email.present?
     content_parts << "Company: #{company}" if company.present?
     content_parts << "Phone: #{phone}" if phone.present?
-    content_parts << "Notes: #{notes}" if notes.present?
     
     content_parts.join("\n")
   end

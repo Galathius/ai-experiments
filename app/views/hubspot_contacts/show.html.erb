@@ -126,16 +126,27 @@
   </div>
 
   <!-- Notes Section -->
-  <% if @contact.notes.present? %>
+  <% if @contact.hubspot_notes.any? %>
     <div class="mt-6 bg-white shadow rounded-lg">
       <div class="px-6 py-4 border-b border-gray-200">
-        <h2 class="text-lg font-medium text-gray-900">Notes</h2>
+        <h2 class="text-lg font-medium text-gray-900">
+          Notes (<%= @contact.hubspot_notes.count %>)
+        </h2>
       </div>
       
-      <div class="px-6 py-4">
-        <div class="prose max-w-none">
-          <%= simple_format(@contact.notes) %>
-        </div>
+      <div class="px-6 py-4 space-y-4">
+        <% @contact.hubspot_notes.order(created_date: :desc).each do |note| %>
+          <div class="border-l-4 border-blue-200 pl-4">
+            <% if note.created_date %>
+              <p class="text-sm text-gray-500 mb-2">
+                <%= note.created_date.strftime('%B %d, %Y at %I:%M %p') %>
+              </p>
+            <% end %>
+            <div class="prose max-w-none">
+              <%= simple_format(note.content) %>
+            </div>
+          </div>
+        <% end %>
       </div>
     </div>
   <% end %>
