@@ -57,6 +57,51 @@ class CalendarService
     events_imported
   end
 
+  def create_event(title:, start_time:, end_time:, description: nil, attendees: [], location: nil)
+    return { success: false, error: "Calendar authorization not available" } unless @calendar.authorization
+
+    begin
+      # Create the event object
+      event = Google::Apis::CalendarV3::Event.new(
+        summary: title,
+        description: description,
+        location: location,
+        start: Google::Apis::CalendarV3::EventDateTime.new(
+          date_time: start_time.iso8601,
+          time_zone: Time.zone.name
+        ),
+        end: Google::Apis::CalendarV3::EventDateTime.new(
+          date_time: end_time.iso8601,
+          time_zone: Time.zone.name
+        )
+      )
+
+      # Add attendees if provided
+      if attendees.any?
+        event.attendees = attendees.map do |email|
+          Google::Apis::CalendarV3::EventAttendee.new(email: email)
+        end
+      end
+
+      # Create the event in primary calendar
+      result = @calendar.insert_event("primary", event)
+
+      {
+        success: true,
+        event_id: result.id,
+        html_link: result.html_link,
+        start_time: result.start.date_time,
+        end_time: result.end.date_time
+      }
+    rescue => e
+      Rails.logger.error "Failed to create calendar event: #{e.message}"
+      {
+        success: false,
+        error: e.message
+      }
+    end
+  end
+
   private
 
   def build_authorization

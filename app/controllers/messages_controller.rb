@@ -207,12 +207,22 @@ class MessagesController < ApplicationController
   end
 
   def build_system_prompt(context_items)
-    base_prompt = "You are an AI assistant for a financial advisor. You help with managing emails, calendar events, client relationships, and HubSpot CRM data. You have access to the user's email, calendar, and HubSpot contact/notes data to provide informed responses.\n\n"
+    base_prompt = "You are an AI assistant for a financial advisor. You help with managing emails, calendar events, client relationships, HubSpot CRM data, and task management. You have access to the user's email, calendar, HubSpot contact/notes data, and task information to provide informed responses.\n\n"
 
     base_prompt += "You can perform actions like:\n"
     base_prompt += "- Send emails using send_email\n"
     base_prompt += "- Create calendar events using create_calendar_event\n"
-    base_prompt += "- Add notes to HubSpot contacts using add_hubspot_note\n\n"
+    base_prompt += "- Add notes to HubSpot contacts using add_hubspot_note\n"
+    base_prompt += "- Create tasks using create_task\n"
+    base_prompt += "- List and filter tasks using list_tasks\n"
+    base_prompt += "- Update task details using update_task\n"
+    base_prompt += "- Mark tasks as completed using complete_task\n\n"
+
+    # Add task context
+    task_context = get_task_context
+    if task_context.present?
+      base_prompt += "CURRENT TASK STATUS:\n#{task_context}\n\n"
+    end
 
     if context_items.any?
       base_prompt += "Here is relevant context from the user's emails, calendar, and HubSpot CRM:\n\n"
@@ -261,5 +271,10 @@ class MessagesController < ApplicationController
     base_prompt += "- For scheduling requests, mention you'd need calendar access to check availability\n"
 
     base_prompt
+  end
+
+  def get_task_context
+    task_manager = TaskManager.new(Current.user)
+    task_manager.get_context_for_ai
   end
 end

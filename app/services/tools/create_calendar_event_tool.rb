@@ -51,8 +51,10 @@ module Tools
             {
               event_id: event[:event_id],
               title: params["title"],
-              start_time: params["start_time"],
-              duration: params["duration_minutes"] || 60
+              start_time: event[:start_time],
+              end_time: event[:end_time],
+              html_link: event[:html_link],
+              attendees: params["attendees"] || []
             }
           )
         else
@@ -76,20 +78,17 @@ module Tools
       start_time = DateTime.parse(params["start_time"])
       duration_minutes = params["duration_minutes"] || 60
       end_time = start_time + duration_minutes.minutes
+      
+      attendees = params["attendees"] || []
+      description = params["description"]
 
-      # For now, return a mock response
-      # This would need to be implemented in CalendarService
-      {
-        success: true,
-        event_id: "mock_event_#{Time.current.to_i}",
+      calendar_service.create_event(
+        title: params["title"],
         start_time: start_time,
-        end_time: end_time
-      }
-    rescue => e
-      {
-        success: false,
-        error: e.message
-      }
+        end_time: end_time,
+        description: description,
+        attendees: attendees
+      )
     end
   end
 end

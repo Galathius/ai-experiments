@@ -1,0 +1,21 @@
+# Read about fixtures at https://api.rubyonrails.org/classes/ActiveRecord/FixtureSet.html
+
+one:
+  user: one
+  title: MyString
+  description: MyText
+  status: MyString
+  priority: MyString
+  due_date: 2025-07-06 13:54:30
+  completed_at: 2025-07-06 13:54:30
+  metadata: 
+
+two:
+  user: two
+  title: MyString
+  description: MyText
+  status: MyString
+  priority: MyString
+  due_date: 2025-07-06 13:54:30
+  completed_at: 2025-07-06 13:54:30
+  metadata: 
