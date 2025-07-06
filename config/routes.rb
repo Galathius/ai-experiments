@@ -1,4 +1,5 @@
 Rails.application.routes.draw do
+  resources :action_logs, only: [:index]
   resources :chats, only: [:index, :show, :destroy] do
     resources :messages, only: [:create]
   end

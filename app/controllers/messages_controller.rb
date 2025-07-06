@@ -132,6 +132,7 @@ class MessagesController < ApplicationController
     client = OpenAI::Client.new(access_token: Rails.application.credentials.openai.api_key)
     
     begin
+      # Initial chat completion with tools
       response = client.chat(
         parameters: {
           model: "gpt-4o-mini",
@@ -139,20 +140,70 @@ class MessagesController < ApplicationController
             { role: "system", content: system_prompt },
             { role: "user", content: user_input }
           ],
+          tools: ToolRegistry.available_tools,
+          tool_choice: "auto",
           temperature: 0.7,
           max_tokens: 1000
         }
       )
       
-      response.dig("choices", 0, "message", "content") || "I apologize, but I couldn't generate a response at this time."
+      message = response.dig("choices", 0, "message")
+      
+      # Check if the AI wants to use tools
+      if message["tool_calls"]
+        handle_tool_calls(client, system_prompt, user_input, message)
+      else
+        message["content"] || "I apologize, but I couldn't generate a response at this time."
+      end
     rescue => e
       Rails.logger.error "OpenAI API error: #{e.message}"
       "I'm sorry, I'm having trouble accessing my AI capabilities right now. Please try again in a moment."
     end
   end
   
+  def handle_tool_calls(client, system_prompt, user_input, assistant_message)
+    # Execute the tool calls
+    tool_results = ToolExecutor.execute_tool_calls(assistant_message["tool_calls"], Current.user)
+    
+    # Build the conversation history with tool results
+    messages = [
+      { role: "system", content: system_prompt },
+      { role: "user", content: user_input },
+      { role: "assistant", content: assistant_message["content"], tool_calls: assistant_message["tool_calls"] }
+    ]
+    
+    # Add tool results
+    tool_results.each do |result|
+      messages << {
+        role: "tool",
+        tool_call_id: result[:tool_call_id],
+        content: result[:content]
+      }
+    end
+    
+    # Get final response from AI with tool results
+    response = client.chat(
+      parameters: {
+        model: "gpt-4o-mini",
+        messages: messages,
+        temperature: 0.7,
+        max_tokens: 1000
+      }
+    )
+    
+    response.dig("choices", 0, "message", "content") || "I completed the requested actions."
+  rescue => e
+    Rails.logger.error "Tool calling error: #{e.message}"
+    "I attempted to perform the requested actions but encountered an error. Please check your connections and try again."
+  end
+  
   def build_system_prompt(context_items)
     base_prompt = "You are an AI assistant for a financial advisor. You help with managing emails, calendar events, client relationships, and HubSpot CRM data. You have access to the user's email, calendar, and HubSpot contact/notes data to provide informed responses.\n\n"
+    
+    base_prompt += "You can perform actions like:\n"
+    base_prompt += "- Send emails using send_email\n"
+    base_prompt += "- Create calendar events using create_calendar_event\n"
+    base_prompt += "- Add notes to HubSpot contacts using add_hubspot_note\n\n"
     
     if context_items.any?
       base_prompt += "Here is relevant context from the user's emails, calendar, and HubSpot CRM:\n\n"
