@@ -4,13 +4,18 @@ class TaskManager
   end
 
   def create_task(title:, description: nil, priority: 'medium', due_date: nil, metadata: {})
-    @user.tasks.create!(
+    task = @user.tasks.create!(
       title: title,
       description: description,
       priority: priority,
       due_date: due_date,
       metadata: metadata
     )
+
+    # Generate embedding for the task
+    EmbeddingService.generate_embedding_for(task)
+
+    task
   end
 
   def update_task(task_id, updates = {})

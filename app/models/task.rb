@@ -1,5 +1,6 @@
 class Task < ApplicationRecord
   belongs_to :user
+  has_one :embedding, as: :embeddable, dependent: :destroy
 
   validates :title, presence: true
   validates :status, inclusion: { in: %w[pending in_progress completed cancelled] }
@@ -34,5 +35,31 @@ class Task < ApplicationRecord
     when 'low' then 1
     else 0
     end
+  end
+
+  def content_for_embedding
+    parts = []
+    
+    # Add task title and description
+    parts << "Task: #{title}" if title.present?
+    parts << description if description.present?
+    
+    # Add priority and status context
+    parts << "Priority: #{priority}" if priority.present?
+    parts << "Status: #{status}" if status.present?
+    
+    # Add due date context
+    if due_date.present?
+      parts << "Due: #{due_date.strftime('%B %d, %Y')}"
+    end
+    
+    parts.compact.join(" ")
+  end
+
+  def self.semantic_search(query, limit: 10)
+    # This will be used for RAG - find tasks similar to the query
+    embeddings = Embedding.semantic_search(query, limit: limit, types: [ "Task" ])
+    task_ids = embeddings.pluck(:embeddable_id)
+    where(id: task_ids)
   end
 end

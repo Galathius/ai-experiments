@@ -1,9 +1,11 @@
 Rails.application.routes.draw do
-  resources :notifications, only: [ :index, :show, :update ]
   resources :tasks, only: [ :index, :show ]
   resources :action_logs, only: [ :index ]
   resources :chats, only: [ :index, :show, :destroy ] do
     resources :messages, only: [ :create ]
+    collection do
+      post :pull_data
+    end
   end
 
   # For creating messages without specifying a chat (creates new chat)
