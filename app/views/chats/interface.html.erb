@@ -93,24 +93,23 @@
           data-chat-modal-target="chatForm"
           data-action="submit->chat-modal#sendMessage"
         >
-          <div class="relative border border-gray-300 rounded-xl p-3">
-            <textarea 
-              data-chat-modal-target="messageInput"
-              data-action="keydown->chat-modal#handleKeydown"
-              name="content"
-              placeholder="Ask anything about your meetings..."
-              class="w-full border-none outline-none resize-none text-sm leading-snug bg-transparent"
-              rows="1"
-            ></textarea>
-            
-            <!-- Input Controls -->
-            <div class="flex items-center justify-end mt-2">
+          <div class="relative border border-gray-300 rounded-xl">
+            <div class="flex items-center gap-2 p-3">
+              <textarea 
+                data-chat-modal-target="messageInput"
+                data-action="keydown->chat-modal#handleKeydown"
+                name="content"
+                placeholder="Ask anything about your meetings..."
+                class="flex-1 border-none outline-none resize-none text-sm leading-snug bg-transparent min-h-[20px]"
+                rows="1"
+              ></textarea>
+              
               <!-- Send button -->
               <button 
                 type="button" 
                 data-chat-modal-target="sendBtn"
                 data-action="click->chat-modal#sendMessage"
-                class="bg-blue-600 hover:bg-blue-700 text-white border-none rounded-full w-7 h-7 flex items-center justify-center cursor-pointer"
+                class="bg-blue-600 hover:bg-blue-700 text-white border-none rounded-full w-7 h-7 flex items-center justify-center cursor-pointer flex-shrink-0"
               >
                 <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                   <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 19l9 2-9-18-9 18 9-2zm0 0v-8"/>
