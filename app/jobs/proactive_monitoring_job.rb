@@ -3,7 +3,7 @@ class ProactiveMonitoringJob < ApplicationJob
 
   def perform
     Rails.logger.info "Running proactive monitoring for all users..."
-    
+
     start_time = Time.current
     user_count = 0
     notification_count = 0
@@ -11,12 +11,12 @@ class ProactiveMonitoringJob < ApplicationJob
     User.find_each do |user|
       user_count += 1
       initial_count = user.notifications.count
-      
+
       ProactiveService.new(user).check_and_notify
-      
+
       new_notifications = user.notifications.count - initial_count
       notification_count += new_notifications
-      
+
       Rails.logger.debug "Checked user #{user.id}: #{new_notifications} new notifications"
     rescue => e
       Rails.logger.error "Error processing proactive monitoring for user #{user.id}: #{e.message}"

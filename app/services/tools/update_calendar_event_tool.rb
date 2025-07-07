@@ -15,7 +15,7 @@ module Tools
               },
               action: {
                 type: "string",
-                enum: ["update", "cancel", "reschedule"],
+                enum: [ "update", "cancel", "reschedule" ],
                 description: "Action to perform on the event"
               },
               new_title: {
@@ -27,7 +27,7 @@ module Tools
                 description: "New start time (YYYY-MM-DD HH:MM format, only for update/reschedule)"
               },
               new_end_time: {
-                type: "string", 
+                type: "string",
                 description: "New end time (YYYY-MM-DD HH:MM format, only for update/reschedule)"
               },
               new_description: {
@@ -50,7 +50,7 @@ module Tools
                 description: "Reason for cancellation (only for cancel action)"
               }
             },
-            required: ["event_id", "action"]
+            required: [ "event_id", "action" ]
           }
         }
       }
@@ -60,7 +60,7 @@ module Tools
     event_id = params["event_id"]
     action = params["action"]
 
-    # Find the event (try both our ID and Google event ID)
+      # Find the event (try both our ID and Google event ID)
       event = find_event(event_id)
       unless event
         return error_response("Calendar event not found with ID: #{event_id}")
@@ -99,8 +99,8 @@ module Tools
 
     begin
       # Get the current event from Google
-      google_event = google_service.get_event('primary', event.google_event_id)
-      
+      google_event = google_service.get_event("primary", event.google_event_id)
+
       # Update fields if provided
       google_event.summary = params["new_title"] if params["new_title"]
       google_event.description = params["new_description"] if params["new_description"]
@@ -109,7 +109,7 @@ module Tools
       if params["new_start_time"] && params["new_end_time"]
         start_time = Time.parse(params["new_start_time"])
         end_time = Time.parse(params["new_end_time"])
-        
+
         google_event.start = Google::Apis::CalendarV3::EventDateTime.new(
           date_time: start_time.rfc3339
         )
@@ -126,7 +126,7 @@ module Tools
       end
 
       # Update the event in Google Calendar
-      updated_google_event = google_service.update_event('primary', event.google_event_id, google_event)
+      updated_google_event = google_service.update_event("primary", event.google_event_id, google_event)
 
         # Update our local database record
         update_local_event(event, updated_google_event)
@@ -173,12 +173,12 @@ module Tools
 
       begin
         # Cancel the event in Google Calendar
-        google_service.delete_event('primary', event.google_event_id)
+        google_service.delete_event("primary", event.google_event_id)
 
         # Update our local record to mark as cancelled
         event.update!(
-          status: 'cancelled',
-          description: [event.description, "Cancelled: #{params['cancellation_reason']}"].compact.join("\n\n")
+          status: "cancelled",
+          description: [ event.description, "Cancelled: #{params['cancellation_reason']}" ].compact.join("\n\n")
         )
 
         success_response(
@@ -217,7 +217,7 @@ module Tools
       location: google_event.location,
       start_time: google_event.start.date_time || google_event.start.date,
       end_time: google_event.end.date_time || google_event.end.date,
-      attendees: google_event.attendees&.map(&:email)&.join(','),
+      attendees: google_event.attendees&.map(&:email)&.join(","),
       status: google_event.status
     )
     end

@@ -59,7 +59,7 @@ class GmailService
 
       # Send the email
       result = @gmail.send_user_message("me", message)
-      
+
       {
         success: true,
         message_id: result.id,
@@ -80,7 +80,7 @@ class GmailService
   def create_email_message(to_email:, subject:, body:)
     # Get user's email address
     user_email = @user.email_address
-    
+
     # Use the Mail gem to create a properly formatted email
     mail = Mail.new do
       from user_email
@@ -88,12 +88,12 @@ class GmailService
       subject subject
       body body
     end
-    
+
     # Create Gmail message object
     message = Google::Apis::GmailV1::Message.new(
       raw: mail.to_s
     )
-    
+
     message
   end
 

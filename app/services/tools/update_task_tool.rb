@@ -23,12 +23,12 @@ module Tools
               },
               status: {
                 type: "string",
-                enum: ["pending", "in_progress", "completed", "cancelled"],
+                enum: [ "pending", "in_progress", "completed", "cancelled" ],
                 description: "New status for the task (optional)"
               },
               priority: {
                 type: "string",
-                enum: ["low", "medium", "high", "urgent"],
+                enum: [ "low", "medium", "high", "urgent" ],
                 description: "New priority level (optional)"
               },
               due_date: {
@@ -36,7 +36,7 @@ module Tools
                 description: "New due date in ISO format (YYYY-MM-DD) (optional)"
               }
             },
-            required: ["task_id"]
+            required: [ "task_id" ]
           }
         }
       }
@@ -47,14 +47,14 @@ module Tools
 
       begin
         task_manager = TaskManager.new(user)
-        
+
         # Build updates hash
         updates = {}
         updates[:title] = params["title"] if params["title"].present?
         updates[:description] = params["description"] if params["description"].present?
         updates[:status] = params["status"] if params["status"].present?
         updates[:priority] = params["priority"] if params["priority"].present?
-        
+
         if params["due_date"].present?
           updates[:due_date] = Date.parse(params["due_date"]).beginning_of_day
         end

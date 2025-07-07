@@ -14,7 +14,7 @@ module Tools
                 description: "ID of the task to complete"
               }
             },
-            required: ["task_id"]
+            required: [ "task_id" ]
           }
         }
       }

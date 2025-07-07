@@ -3,7 +3,7 @@ class TaskManager
     @user = user
   end
 
-  def create_task(title:, description: nil, priority: 'medium', due_date: nil, metadata: {})
+  def create_task(title:, description: nil, priority: "medium", due_date: nil, metadata: {})
     task = @user.tasks.create!(
       title: title,
       description: description,
@@ -36,7 +36,7 @@ class TaskManager
     # Apply filters
     tasks = tasks.where(status: filters[:status]) if filters[:status]
     tasks = tasks.where(priority: filters[:priority]) if filters[:priority]
-    
+
     if filters[:overdue]
       tasks = tasks.overdue
     elsif filters[:due_soon]
@@ -48,12 +48,12 @@ class TaskManager
     # Default ordering: priority desc, then due date
     tasks.order(
       Arel.sql("
-        CASE priority 
-          WHEN 'urgent' THEN 4 
-          WHEN 'high' THEN 3 
-          WHEN 'medium' THEN 2 
-          WHEN 'low' THEN 1 
-          ELSE 0 
+        CASE priority
+          WHEN 'urgent' THEN 4
+          WHEN 'high' THEN 3
+          WHEN 'medium' THEN 2
+          WHEN 'low' THEN 1
+          ELSE 0
         END DESC
       "),
       :due_date
@@ -72,19 +72,19 @@ class TaskManager
   end
 
   def get_urgent_tasks
-    @user.tasks.active.where(priority: ['urgent', 'high']).limit(5)
+    @user.tasks.active.where(priority: [ "urgent", "high" ]).limit(5)
   end
 
   def get_context_for_ai
     summary = get_task_summary
     urgent_tasks = get_urgent_tasks
-    
+
     context = []
-    
+
     if summary[:overdue] > 0
       context << "⚠️ You have #{summary[:overdue]} overdue task(s)"
     end
-    
+
     if summary[:due_soon] > 0
       context << "📅 You have #{summary[:due_soon]} task(s) due soon"
     end

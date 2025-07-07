@@ -19,7 +19,7 @@ module Tools
               },
               priority: {
                 type: "string",
-                enum: ["low", "medium", "high", "urgent"],
+                enum: [ "low", "medium", "high", "urgent" ],
                 description: "Priority level of the task"
               },
               due_date: {
@@ -27,7 +27,7 @@ module Tools
                 description: "Due date in ISO format (YYYY-MM-DD) (optional)"
               }
             },
-            required: ["title"]
+            required: [ "title" ]
           }
         }
       }
@@ -38,7 +38,7 @@ module Tools
 
       begin
         task_manager = TaskManager.new(user)
-        
+
         # Parse due_date if provided
         due_date = nil
         if params["due_date"].present?

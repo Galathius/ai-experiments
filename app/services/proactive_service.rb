@@ -5,14 +5,14 @@ class ProactiveService
 
   def check_trigger_based_tasks(data_type, new_records)
     return if new_records.empty?
-    
+
     Rails.logger.info "🔍 Checking for proactive tasks triggered by #{data_type} (#{new_records.size} new records)"
-    
+
     # Use RAG to find relevant tasks
     relevant_tasks = find_relevant_tasks_with_rag(data_type, new_records)
-    
+
     Rails.logger.info "Found #{relevant_tasks.size} potentially relevant tasks"
-    
+
     relevant_tasks.each do |task|
       execute_proactive_task(task, new_records)
     end
@@ -23,32 +23,32 @@ class ProactiveService
   def find_relevant_tasks_with_rag(data_type, new_records)
     # Create a query based on the data type and new records
     query = build_search_query(data_type, new_records)
-    
+
     # Search for relevant tasks using semantic search
     task_embeddings = Embedding.semantic_search(query, limit: 5)
-                               .where(embeddable_type: 'Task')
+                               .where(embeddable_type: "Task")
                                .includes(:embeddable)
-    
+
     # Filter to only pending tasks belonging to the user
     relevant_tasks = task_embeddings.map(&:embeddable)
-                                   .select { |task| task.user_id == @user.id && task.status == 'pending' }
-    
+                                   .select { |task| task.user_id == @user.id && task.status == "pending" }
+
     Rails.logger.info "RAG search query: '#{query}' found #{relevant_tasks.size} relevant tasks"
-    
+
     relevant_tasks
   end
 
   def build_search_query(data_type, new_records)
     # Build a semantic search query based on the trigger context
     case data_type
-    when 'contact'
+    when "contact"
       sample_contact = new_records.first
       "when create new contact client customer #{sample_contact.first_name if sample_contact.respond_to?(:first_name)}"
-    when 'email'
+    when "email"
       "when receive new email message"
-    when 'calendar_event'
+    when "calendar_event"
       "when create new meeting calendar event appointment"
-    when 'note'
+    when "note"
       "when create new note comment"
     else
       "when create new #{data_type}"
@@ -57,23 +57,23 @@ class ProactiveService
 
   def execute_proactive_task(task, new_records)
     Rails.logger.info "🤖 Analyzing task for proactive execution: #{task.title}"
-    
+
     # Use AI to analyze if this task should trigger and what actions to take
     analysis = analyze_task_with_ai(task, new_records)
-    
+
     return unless analysis[:should_execute]
-    
+
     Rails.logger.info "✅ Task should execute: #{analysis[:reasoning]}"
-    
+
     # Execute the determined actions
     actions_executed = 0
-    
+
     new_records.each do |record|
       if execute_actions_for_record(task, record, analysis[:actions])
         actions_executed += 1
       end
     end
-    
+
     # Log the execution
     if actions_executed > 0
       @user.action_logs.create!(
@@ -91,7 +91,7 @@ class ProactiveService
           execution_time: Time.current
         }
       )
-      
+
       Rails.logger.info "🎯 Successfully executed #{actions_executed} proactive actions for task: #{task.title}"
     end
   end
@@ -112,10 +112,10 @@ class ProactiveService
     end.join("\n")
 
     prompt = build_analysis_prompt(task, records_context)
-    
+
     begin
       client = OpenAI::Client.new(access_token: Rails.application.credentials.openai.api_key)
-      
+
       response = client.chat(
         parameters: {
           model: "gpt-4o-mini",
@@ -127,10 +127,10 @@ class ProactiveService
           max_tokens: 500
         }
       )
-      
+
       result = response.dig("choices", 0, "message", "content")
       parse_ai_analysis(result)
-      
+
     rescue => e
       Rails.logger.error "Failed to analyze task with AI: #{e.message}"
       { should_execute: false, reasoning: "AI analysis failed", actions: [] }
@@ -163,13 +163,13 @@ class ProactiveService
             "content": "email content"
           },
           {
-            "type": "create_task", 
+            "type": "create_task",#{' '}
             "title": "task title",
             "description": "task description"
           },
           {
             "type": "create_calendar_event",
-            "title": "event title", 
+            "title": "event title",#{' '}
             "description": "event description"
           }
         ]
@@ -201,7 +201,7 @@ class ProactiveService
 
   def execute_actions_for_record(task, record, actions)
     actions_executed = false
-    
+
     actions.each do |action|
       case action["type"]
       when "send_email"
@@ -212,13 +212,13 @@ class ProactiveService
         if execute_create_task_action(action, record)
           actions_executed = true
         end
-      when "create_calendar_event" 
+      when "create_calendar_event"
         if execute_create_calendar_event_action(action, record)
           actions_executed = true
         end
       end
     end
-    
+
     actions_executed
   end
 
@@ -226,7 +226,7 @@ class ProactiveService
     # Get recipient email from action or record
     recipient = action["recipient"] || get_email_from_record(record)
     return false unless recipient.present?
-    
+
     begin
       params = {
         "to_email" => recipient,
@@ -235,12 +235,12 @@ class ProactiveService
       }
       tool = Tools::SendEmailTool.new(params, @user)
       result = tool.execute
-      
+
       Rails.logger.info "✅ Sent proactive email to #{recipient}"
-      return true
+      true
     rescue => e
       Rails.logger.error "❌ Failed to send proactive email: #{e.message}"
-      return false
+      false
     end
   end
 
@@ -254,12 +254,12 @@ class ProactiveService
       }
       tool = Tools::CreateTaskTool.new(params, @user)
       result = tool.execute
-      
+
       Rails.logger.info "✅ Created proactive task: #{action['title']}"
-      return true
+      true
     rescue => e
       Rails.logger.error "❌ Failed to create proactive task: #{e.message}"
-      return false
+      false
     end
   end
 
@@ -273,12 +273,12 @@ class ProactiveService
       }
       tool = Tools::CreateCalendarEventTool.new(params, @user)
       result = tool.execute
-      
+
       Rails.logger.info "✅ Created proactive calendar event: #{action['title']}"
-      return true
+      true
     rescue => e
       Rails.logger.error "❌ Failed to create proactive calendar event: #{e.message}"
-      return false
+      false
     end
   end
 

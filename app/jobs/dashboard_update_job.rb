@@ -3,13 +3,13 @@ class DashboardUpdateJob < ApplicationJob
 
   def perform(user_id)
     user = User.find(user_id)
-    
+
     # Use Turbo Streams to update the dashboard sections
     Turbo::StreamsChannel.broadcast_update_to(
       "dashboard_#{user.id}",
       target: "dashboard-content",
       partial: "dashboard/dashboard_content",
-      locals: { 
+      locals: {
         user: user,
         stats: {
           emails: user.emails.count,

@@ -13,7 +13,7 @@ class CreateTasks < ActiveRecord::Migration[8.0]
       t.timestamps
     end
 
-    add_index :tasks, [:user_id, :status]
+    add_index :tasks, [ :user_id, :status ]
     add_index :tasks, :due_date
     add_index :tasks, :priority
     add_index :tasks, :metadata, using: :gin

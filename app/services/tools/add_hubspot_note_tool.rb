@@ -72,23 +72,23 @@ module Tools
         user.hubspot_identity.access_token,
         user.hubspot_identity
       )
-      
+
       hubspot_response = hubspot_service.create_note(
         contact.hubspot_contact_id,
         params["note_content"]
       )
-      
+
       unless hubspot_response
         raise "Failed to create note in HubSpot"
       end
-      
+
       # Create local note record with HubSpot ID
       created_date = if hubspot_response.dig("properties", "hs_createdate")
                       Time.parse(hubspot_response.dig("properties", "hs_createdate"))
-                    else
+      else
                       Time.current
-                    end
-                    
+      end
+
       note = user.hubspot_notes.create!(
         hubspot_contact: contact,
         hubspot_contact_id: contact.hubspot_contact_id,

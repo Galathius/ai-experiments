@@ -11,17 +11,17 @@ module Tools
             properties: {
               status: {
                 type: "string",
-                enum: ["pending", "in_progress", "completed", "cancelled"],
+                enum: [ "pending", "in_progress", "completed", "cancelled" ],
                 description: "Filter by task status (optional)"
               },
               priority: {
                 type: "string",
-                enum: ["low", "medium", "high", "urgent"],
+                enum: [ "low", "medium", "high", "urgent" ],
                 description: "Filter by priority level (optional)"
               },
               filter: {
                 type: "string",
-                enum: ["overdue", "due_soon", "active"],
+                enum: [ "overdue", "due_soon", "active" ],
                 description: "Special filters: overdue, due_soon, or active tasks (optional)"
               },
               limit: {
@@ -37,12 +37,12 @@ module Tools
     def execute
       begin
         task_manager = TaskManager.new(user)
-        
+
         # Build filters
         filters = {}
         filters[:status] = params["status"] if params["status"].present?
         filters[:priority] = params["priority"] if params["priority"].present?
-        
+
         case params["filter"]
         when "overdue"
           filters[:overdue] = true

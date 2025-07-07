@@ -9,7 +9,7 @@ Rails.application.routes.draw do
   delete "/hubspot/disconnect" => "hubspot#disconnect", as: :disconnect_hubspot
   delete "/google/disconnect" => "google#disconnect", as: :disconnect_google
 
-  resource :session, only: [:new, :destroy]
+  resource :session, only: [ :new, :destroy ]
   # Define your application routes per the DSL in https://guides.rubyonrails.org/routing.html
 
   # Reveal health status on /up that returns 200 if the app boots with no exceptions, otherwise 500.
@@ -27,10 +27,10 @@ Rails.application.routes.draw do
   get "/chat_interface" => "chats#interface"
   post "/pull_data" => "dashboard#pull_data"
   get "/dashboard_update" => "dashboard#dashboard_update"
-  
+
   # Admin routes
   post "/admin/reset_all_data" => "admin#reset_all_data"
-  
+
   # Defines the root path route ("/")
   root "dashboard#index"
 end

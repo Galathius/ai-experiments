@@ -133,8 +133,8 @@ class MessagesController < ApplicationController
 
     begin
       # Build conversation history including previous messages
-      messages = [{ role: "system", content: system_prompt }]
-      
+      messages = [ { role: "system", content: system_prompt } ]
+
       # Add previous messages from the chat (excluding the current user message which will be added below)
       @chat.messages.order(:created_at).each do |message|
         messages << { role: message.role, content: message.content }
@@ -171,13 +171,13 @@ class MessagesController < ApplicationController
     tool_results = ToolExecutor.execute_tool_calls(assistant_message["tool_calls"], Current.user)
 
     # Build the conversation history with tool results
-    messages = [{ role: "system", content: system_prompt }]
-    
+    messages = [ { role: "system", content: system_prompt } ]
+
     # Add previous messages from the chat
     @chat.messages.order(:created_at).each do |message|
       messages << { role: message.role, content: message.content }
     end
-    
+
     # Add the assistant's tool call response
     messages << { role: "assistant", content: assistant_message["content"], tool_calls: assistant_message["tool_calls"] }
 
@@ -284,5 +284,4 @@ class MessagesController < ApplicationController
     task_manager = TaskManager.new(Current.user)
     task_manager.get_context_for_ai
   end
-
 end

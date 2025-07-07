@@ -82,7 +82,7 @@ module Tools
       start_time = DateTime.parse(params["start_time"])
       duration_minutes = params["duration_minutes"] || 60
       end_time = start_time + duration_minutes.minutes
-      
+
       attendees = params["attendees"] || []
       description = params["description"]
       location = params["location"]

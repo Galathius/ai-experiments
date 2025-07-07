@@ -18,7 +18,7 @@ module Tools
                 description: "Search for events with a specific attendee email"
               },
               start_date: {
-                type: "string", 
+                type: "string",
                 description: "Start date for search range (YYYY-MM-DD format)"
               },
               end_date: {
@@ -42,7 +42,7 @@ module Tools
 
     def execute
     query = params["query"]
-    attendee_email = params["attendee_email"] 
+    attendee_email = params["attendee_email"]
     start_date = params["start_date"]
     end_date = params["end_date"]
     include_past_events = params["include_past_events"] || false
@@ -87,7 +87,7 @@ module Tools
           location: event.location,
           start_time: event.start_time.strftime("%Y-%m-%d %H:%M"),
           end_time: event.end_time&.strftime("%Y-%m-%d %H:%M"),
-          attendees: event.attendees&.split(',')&.map(&:strip) || [],
+          attendees: event.attendees&.split(",")&.map(&:strip) || [],
           status: event.status,
           creator_email: event.creator_email,
           formatted_display: format_event_for_display(event)
@@ -119,7 +119,7 @@ module Tools
   def format_event_for_display(event)
     start_time = event.start_time
     end_time = event.end_time
-    
+
     if start_time.to_date == Date.current
       day_display = "Today"
     elsif start_time.to_date == Date.current + 1.day
@@ -133,11 +133,11 @@ module Tools
     time_display = if end_time
       "#{start_time.strftime('%l:%M %p')} - #{end_time.strftime('%l:%M %p')}"
     else
-      start_time.strftime('%l:%M %p')
+      start_time.strftime("%l:%M %p")
     end
 
     location_display = event.location.present? ? " at #{event.location}" : ""
-    
+
     "#{event.title} on #{day_display} #{time_display}#{location_display}".strip
     end
   end

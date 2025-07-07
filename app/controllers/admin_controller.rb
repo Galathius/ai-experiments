@@ -17,7 +17,7 @@ class AdminController < ApplicationController
       deleted_counts[:action_logs] = ActionLog.count
       ActionLog.delete_all
 
-      deleted_counts[:tasks] = Task.count  
+      deleted_counts[:tasks] = Task.count
       Task.delete_all
 
       deleted_counts[:embeddings] = Embedding.count
@@ -52,7 +52,7 @@ class AdminController < ApplicationController
       User.delete_all
 
       # Clear any pgvector status
-      if ActiveRecord::Base.connection.table_exists?('pgvector_status')
+      if ActiveRecord::Base.connection.table_exists?("pgvector_status")
         deleted_counts[:pgvector_status] = ActiveRecord::Base.connection.execute("SELECT COUNT(*) FROM pgvector_status").first["count"]
         ActiveRecord::Base.connection.execute("DELETE FROM pgvector_status")
       end
