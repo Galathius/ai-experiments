@@ -6,6 +6,12 @@ class ChatsController < ApplicationController
     @current_chat = @chats.first
   end
 
+  def interface
+    @chats = Current.user.chats.recent
+    @current_chat = @chats.first
+    render layout: false
+  end
+
   def show
     @chats = Current.user.chats.recent
     @current_chat = @chat

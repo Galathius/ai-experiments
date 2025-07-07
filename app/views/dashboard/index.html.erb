@@ -1,0 +1,588 @@
+<div class="min-h-screen bg-gray-50">
+  <!-- Header -->
+  <header class="bg-white shadow">
+    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+      <div class="flex justify-between items-center py-6">
+        <div>
+          <h1 class="text-3xl font-bold text-gray-900">Financial Advisor AI Assistant</h1>
+          <p class="text-gray-600">Manage your clients, emails, calendar, and tasks with AI assistance</p>
+        </div>
+        
+        <!-- Chat Button -->
+        <button 
+          id="open-chat-btn"
+          class="bg-blue-600 hover:bg-blue-700 text-white px-6 py-3 rounded-lg flex items-center gap-2 font-medium transition-colors cursor-pointer"
+        >
+          <%= inline_svg "icons/bot.svg", class: "w-5 h-5" %>
+          Open AI Chat
+        </button>
+      </div>
+    </div>
+  </header>
+
+  <!-- Main Content -->
+  <main class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+    <!-- User Info & Quick Actions -->
+    <div class="bg-white rounded-lg shadow p-6 mb-8">
+      <div class="flex items-center justify-between mb-6">
+        <div class="flex items-center space-x-4">
+          <div class="w-16 h-16 bg-blue-600 rounded-full flex items-center justify-center">
+            <span class="text-white text-xl font-bold">
+              <%= @user.first_name&.first&.upcase || @user.email_address&.first&.upcase %>
+            </span>
+          </div>
+          <div>
+            <h2 class="text-xl font-semibold text-gray-900">
+              <%= [@user.first_name, @user.last_name].compact.join(' ').presence || 'User' %>
+            </h2>
+            <p class="text-gray-600"><%= @user.email_address %></p>
+            <p class="text-sm text-gray-500">
+              Member since <%= @user.created_at.strftime("%B %Y") %>
+            </p>
+          </div>
+        </div>
+        
+        <!-- Logout Button -->
+        <%= button_to session_path, method: :delete, class: "bg-gray-100 hover:bg-gray-200 text-gray-700 px-4 py-2 rounded-lg flex items-center gap-2 transition-colors cursor-pointer" do %>
+          <%= inline_svg "icons/logout.svg", class: "w-4 h-4" %>
+          Sign Out
+        <% end %>
+      </div>
+
+    </div>
+
+    <!-- Pull Latest Data Action -->
+    <% if @google_connected || @hubspot_connected %>
+      <%= button_to pull_data_chats_path, method: :post, class: "w-full bg-blue-600 hover:bg-blue-700 text-white p-4 rounded-lg flex items-center justify-center gap-3 transition-colors cursor-pointer mb-8" do %>
+        <%= inline_svg "icons/download.svg", class: "w-6 h-6" %>
+        <div class="text-center">
+          <div class="font-medium text-lg">Pull Latest Data</div>
+          <div class="text-sm opacity-90">Sync from Google & HubSpot</div>
+        </div>
+      <% end %>
+    <% else %>
+      <div class="w-full bg-gray-100 border border-gray-200 text-gray-500 p-4 rounded-lg flex items-center justify-center gap-3 mb-8">
+        <%= inline_svg "icons/download.svg", class: "w-6 h-6" %>
+        <div class="text-center">
+          <div class="font-medium text-lg">Pull Latest Data</div>
+          <div class="text-sm">Connect accounts first</div>
+        </div>
+      </div>
+    <% end %>
+
+    <!-- Data Sections -->
+    <div class="space-y-6">
+      <!-- Google Account Section -->
+      <div class="bg-white rounded-lg shadow">
+        <div class="p-6 border-b border-gray-200">
+          <div class="flex items-center justify-between">
+            <div class="flex items-center gap-3">
+              <%= inline_svg "icons/google.svg", class: "w-8 h-8" %>
+              <div>
+                <h3 class="text-lg font-semibold text-gray-900">Google Account</h3>
+                <p class="text-sm text-gray-600">Gmail & Calendar integration</p>
+              </div>
+            </div>
+            <div class="flex items-center gap-4">
+              <% if @google_connected %>
+                <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-green-100 text-green-800">
+                  Connected
+                </span>
+                <%= button_to disconnect_google_path, method: :delete, class: "text-red-600 hover:text-red-700 text-sm font-medium cursor-pointer" do %>
+                  Disconnect
+                <% end %>
+              <% else %>
+                <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-red-100 text-red-800">
+                  Not Connected
+                </span>
+                <%= link_to "/auth/google_oauth2", class: "bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-lg text-sm font-medium transition-colors cursor-pointer" do %>
+                  Connect Google
+                <% end %>
+              <% end %>
+            </div>
+          </div>
+        </div>
+
+        <% if @google_connected %>
+          <div class="p-6">
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+              <!-- Recent Emails -->
+              <div>
+                <div class="flex items-center justify-between mb-4">
+                  <h4 class="font-medium text-gray-900">Recent Emails (<%= @stats[:emails] %> total)</h4>
+                  <%= button_to import_google_emails_path, method: :post, class: "text-blue-600 hover:text-blue-700 text-sm font-medium cursor-pointer" do %>
+                    Import Now
+                  <% end %>
+                </div>
+                <div class="space-y-2">
+                  <% if @recent_emails.any? %>
+                    <% @recent_emails.each do |email| %>
+                      <div class="text-sm p-3 bg-gray-50 rounded">
+                        <div class="font-medium text-gray-900 truncate"><%= email.subject %></div>
+                        <div class="text-gray-600 text-xs">From: <%= email.from_email %></div>
+                        <div class="text-gray-500 text-xs"><%= time_ago_in_words(email.received_at) %> ago</div>
+                      </div>
+                    <% end %>
+                  <% else %>
+                    <div class="text-gray-500 text-sm italic">No emails imported yet</div>
+                  <% end %>
+                </div>
+              </div>
+
+              <!-- Upcoming Calendar Events -->
+              <div>
+                <div class="flex items-center justify-between mb-4">
+                  <h4 class="font-medium text-gray-900">Upcoming Events (<%= @stats[:calendar_events] %> total)</h4>
+                  <%= button_to import_google_calendar_path, method: :post, class: "text-blue-600 hover:text-blue-700 text-sm font-medium cursor-pointer" do %>
+                    Import Now
+                  <% end %>
+                </div>
+                <div class="space-y-2">
+                  <% if @upcoming_events.any? %>
+                    <% @upcoming_events.each do |event| %>
+                      <div class="text-sm p-3 bg-gray-50 rounded">
+                        <div class="font-medium text-gray-900 truncate"><%= event.title %></div>
+                        <div class="text-gray-600 text-xs">
+                          <%= event.start_time.strftime("%b %d, %Y at %I:%M %p") %>
+                        </div>
+                        <% if event.location.present? %>
+                          <div class="text-gray-500 text-xs">📍 <%= event.location %></div>
+                        <% end %>
+                      </div>
+                    <% end %>
+                  <% else %>
+                    <div class="text-gray-500 text-sm italic">No upcoming events</div>
+                  <% end %>
+                </div>
+              </div>
+            </div>
+          </div>
+        <% end %>
+      </div>
+
+      <!-- HubSpot Section -->
+      <div class="bg-white rounded-lg shadow">
+        <div class="p-6 border-b border-gray-200">
+          <div class="flex items-center justify-between">
+            <div class="flex items-center gap-3">
+              <%= inline_svg "icons/users.svg", class: "w-8 h-8" %>
+              <div>
+                <h3 class="text-lg font-semibold text-gray-900">HubSpot CRM</h3>
+                <p class="text-sm text-gray-600">Customer relationship management</p>
+              </div>
+            </div>
+            <div class="flex items-center gap-4">
+              <% if @hubspot_connected %>
+                <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-green-100 text-green-800">
+                  Connected
+                </span>
+                <%= button_to disconnect_hubspot_path, method: :delete, class: "text-red-600 hover:text-red-700 text-sm font-medium cursor-pointer" do %>
+                  Disconnect
+                <% end %>
+              <% else %>
+                <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-red-100 text-red-800">
+                  Not Connected
+                </span>
+                <%= link_to "/auth/hubspot", class: "bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-lg text-sm font-medium transition-colors cursor-pointer" do %>
+                  Connect HubSpot
+                <% end %>
+              <% end %>
+            </div>
+          </div>
+        </div>
+
+        <% if @hubspot_connected %>
+          <div class="p-6">
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+              <!-- Recent Contacts -->
+              <div>
+                <div class="flex items-center justify-between mb-4">
+                  <h4 class="font-medium text-gray-900">Recent Contacts (<%= @stats[:hubspot_contacts] %> total)</h4>
+                  <%= button_to import_hubspot_contacts_path, method: :post, class: "text-blue-600 hover:text-blue-700 text-sm font-medium cursor-pointer" do %>
+                    Import Now
+                  <% end %>
+                </div>
+                <div class="space-y-2">
+                  <% if @recent_contacts.any? %>
+                    <% @recent_contacts.each do |contact| %>
+                      <div class="text-sm p-3 bg-gray-50 rounded">
+                        <div class="font-medium text-gray-900">
+                          <%= [contact.first_name, contact.last_name].compact.join(' ') %>
+                        </div>
+                        <% if contact.email.present? %>
+                          <div class="text-gray-600 text-xs">📧 <%= contact.email %></div>
+                        <% end %>
+                        <% if contact.company.present? %>
+                          <div class="text-gray-500 text-xs">🏢 <%= contact.company %></div>
+                        <% end %>
+                      </div>
+                    <% end %>
+                  <% else %>
+                    <div class="text-gray-500 text-sm italic">No contacts imported yet</div>
+                  <% end %>
+                </div>
+              </div>
+
+              <!-- Notes Summary -->
+              <div>
+                <div class="flex items-center justify-between mb-4">
+                  <h4 class="font-medium text-gray-900">Notes (<%= @stats[:hubspot_notes] %> total)</h4>
+                  <%= button_to import_hubspot_notes_path, method: :post, class: "text-blue-600 hover:text-blue-700 text-sm font-medium cursor-pointer" do %>
+                    Import Now
+                  <% end %>
+                </div>
+                <div class="text-sm text-gray-600">
+                  <p>📝 Total notes: <%= @stats[:hubspot_notes] %></p>
+                  <p class="text-xs text-gray-500 mt-2">Notes are imported and processed for AI context</p>
+                </div>
+              </div>
+            </div>
+          </div>
+        <% end %>
+      </div>
+
+      <!-- Tasks Section -->
+      <div class="bg-white rounded-lg shadow">
+        <div class="p-6 border-b border-gray-200">
+          <div class="flex items-center justify-between">
+            <div class="flex items-center gap-3">
+              <%= inline_svg "icons/check.svg", class: "w-8 h-8" %>
+              <div>
+                <h3 class="text-lg font-semibold text-gray-900">Tasks</h3>
+                <p class="text-sm text-gray-600">AI-created and user tasks</p>
+              </div>
+            </div>
+            <div class="text-sm text-gray-600">
+              <%= @stats[:pending_tasks] %> pending, <%= @stats[:tasks] %> total
+            </div>
+          </div>
+        </div>
+
+        <div class="p-6">
+          <div class="space-y-2">
+            <% if @pending_tasks.any? %>
+              <% @pending_tasks.each do |task| %>
+                <div class="flex items-center justify-between p-3 bg-gray-50 rounded">
+                  <div class="flex-1">
+                    <div class="font-medium text-gray-900"><%= task.title %></div>
+                    <% if task.description.present? %>
+                      <div class="text-sm text-gray-600"><%= task.description.truncate(100) %></div>
+                    <% end %>
+                    <div class="text-xs text-gray-500 mt-1">
+                      Priority: <%= task.priority.capitalize %>
+                      <% if task.due_date %>
+                        • Due: <%= task.due_date.strftime("%b %d, %Y") %>
+                      <% end %>
+                    </div>
+                  </div>
+                  <div class="flex items-center gap-2">
+                    <span class="inline-flex items-center px-2 py-1 rounded-full text-xs font-medium bg-yellow-100 text-yellow-800">
+                      <%= task.status.humanize %>
+                    </span>
+                  </div>
+                </div>
+              <% end %>
+            <% else %>
+              <div class="text-gray-500 text-sm italic text-center py-8">
+                No pending tasks. Create some tasks by chatting with the AI!
+              </div>
+            <% end %>
+          </div>
+        </div>
+      </div>
+
+      <!-- Activity Logs Section -->
+      <div class="bg-white rounded-lg shadow">
+        <div class="p-6 border-b border-gray-200">
+          <div class="flex items-center gap-3">
+            <%= inline_svg "icons/clipboard.svg", class: "w-8 h-8" %>
+            <div>
+              <h3 class="text-lg font-semibold text-gray-900">AI Activity Logs</h3>
+              <p class="text-sm text-gray-600">Recent tool executions and actions</p>
+            </div>
+          </div>
+        </div>
+
+        <div class="divide-y divide-gray-200">
+          <% if @recent_action_logs.any? %>
+            <% @recent_action_logs.each do |log| %>
+              <div class="px-6 py-4">
+                <div class="flex items-center justify-between">
+                  <div class="flex-1">
+                    <div class="flex items-center gap-2">
+                      <span class="text-sm font-medium text-gray-900"><%= log.tool_name %></span>
+                      <% if log.result&.dig("success") %>
+                        <span class="inline-flex items-center px-2 py-1 rounded-full text-xs font-medium bg-green-100 text-green-800">
+                          Success
+                        </span>
+                      <% else %>
+                        <span class="inline-flex items-center px-2 py-1 rounded-full text-xs font-medium bg-red-100 text-red-800">
+                          Failed
+                        </span>
+                      <% end %>
+                    </div>
+                    <div class="text-xs text-gray-600 mt-1">
+                      <%= time_ago_in_words(log.created_at) %> ago
+                    </div>
+                    <% if log.result&.dig("message") %>
+                      <div class="text-xs text-gray-500 mt-1">
+                        <%= log.result["message"].truncate(100) %>
+                      </div>
+                    <% end %>
+                  </div>
+                </div>
+              </div>
+            <% end %>
+          <% else %>
+            <div class="px-6 py-8 text-center text-gray-500 text-sm italic">
+              No AI activity yet. Start chatting to see tool executions here!
+            </div>
+          <% end %>
+        </div>
+      </div>
+    </div>
+  </main>
+</div>
+
+<!-- Chat Popup Modal (initially hidden) -->
+<div id="chat-modal" class="fixed inset-0 z-50 hidden" style="overflow: hidden;">
+  <!-- Backdrop -->
+  <div class="fixed inset-0 bg-black bg-opacity-50 cursor-pointer" id="chat-backdrop"></div>
+  
+  <!-- Modal -->
+  <div class="fixed inset-4 md:inset-8 lg:inset-16 bg-white rounded-lg shadow-xl" style="display: flex; flex-direction: column; overflow: hidden; max-height: calc(100vh - 64px);">
+    <!-- Chat content will be loaded here -->
+    <div id="chat-content" style="flex: 1; display: flex; flex-direction: column; overflow: hidden; height: 100%;">
+      <!-- Loading state -->
+      <div style="flex: 1; display: flex; align-items: center; justify-content: center;">
+        <div style="color: #6b7280;">Loading chat...</div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<script>
+  // Handle chat modal and functionality
+  document.addEventListener('DOMContentLoaded', function() {
+    const openChatBtn = document.getElementById('open-chat-btn');
+    const chatModal = document.getElementById('chat-modal');
+    const chatBackdrop = document.getElementById('chat-backdrop');
+    const chatContent = document.getElementById('chat-content');
+    
+    function openChatModal() {
+      // Prevent body scroll
+      document.body.style.overflow = 'hidden';
+      
+      chatModal.classList.remove('hidden');
+      // Load chat interface
+      fetch('/chat_interface')
+        .then(response => response.text())
+        .then(html => {
+          console.log('Chat interface loaded, initializing functionality...');
+          chatContent.innerHTML = html;
+          
+          // Initialize chat functionality immediately after loading
+          initializeChatFunctionality();
+        })
+        .catch(error => {
+          console.error('Error loading chat:', error);
+          chatContent.innerHTML = '<div style="flex: 1; display: flex; align-items: center; justify-content: center;"><div style="color: #ef4444;">Error loading chat</div></div>';
+        });
+    }
+    
+    function closeChatModal() {
+      // Restore body scroll
+      document.body.style.overflow = '';
+      
+      chatModal.classList.add('hidden');
+    }
+    
+    function initializeChatFunctionality() {
+      console.log('Setting up chat event handlers...');
+      
+      // Get elements
+      const closeChatBtn = document.getElementById('close-chat-btn');
+      const chatForm = document.getElementById('chat-form');
+      const messageInput = document.getElementById('message-input');
+      const sendBtn = document.getElementById('send-btn');
+      const messagesContainer = document.querySelector('.messages-container');
+      
+      console.log('Found elements:', {
+        closeChatBtn: !!closeChatBtn,
+        chatForm: !!chatForm,
+        messageInput: !!messageInput,
+        sendBtn: !!sendBtn,
+        messagesContainer: !!messagesContainer
+      });
+      
+      // Auto-scroll to bottom and focus input
+      if (messagesContainer) {
+        messagesContainer.scrollTop = messagesContainer.scrollHeight;
+      }
+      if (messageInput) {
+        messageInput.focus();
+      }
+      
+      // Close chat handler
+      if (closeChatBtn) {
+        closeChatBtn.addEventListener('click', function(e) {
+          console.log('Close chat clicked');
+          e.preventDefault();
+          closeChatModal();
+        });
+      }
+      
+      // Send message function
+      function sendMessage() {
+        console.log('sendMessage called');
+        
+        if (!messageInput) {
+          console.error('Message input not found');
+          return;
+        }
+        
+        const content = messageInput.value.trim();
+        console.log('Message content:', content);
+        
+        if (!content) {
+          console.log('Empty message, not sending');
+          return;
+        }
+        
+        const chatId = document.getElementById('current-chat-id')?.value;
+        console.log('Chat ID:', chatId);
+        
+        // Clear input immediately
+        messageInput.value = '';
+        
+        // Add user message to UI
+        addMessageToUI('user', content);
+        
+        // Send to backend
+        const url = chatId ? `/chats/${chatId}/messages` : '/messages';
+        console.log('Sending to URL:', url);
+        
+        fetch(url, {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+            'X-CSRF-Token': document.querySelector('meta[name="csrf-token"]').content
+          },
+          body: JSON.stringify({ message: { content: content } })
+        })
+        .then(response => {
+          console.log('Response status:', response.status);
+          return response.json();
+        })
+        .then(data => {
+          console.log('Response data:', data);
+          if (data.ai_message) {
+            addMessageToUI('assistant', data.ai_message.content);
+          }
+          if (data.chat_id) {
+            const chatIdInput = document.getElementById('current-chat-id');
+            if (chatIdInput) {
+              chatIdInput.value = data.chat_id;
+            }
+          }
+        })
+        .catch(error => {
+          console.error('Fetch error:', error);
+          addMessageToUI('assistant', 'Sorry, I encountered an error. Please try again.');
+        });
+      }
+      
+      // Send button click handler
+      if (sendBtn) {
+        sendBtn.addEventListener('click', function(e) {
+          console.log('Send button clicked');
+          e.preventDefault();
+          e.stopPropagation();
+          sendMessage();
+        });
+      }
+      
+      // Form submission handler
+      if (chatForm) {
+        chatForm.addEventListener('submit', function(e) {
+          console.log('Form submitted');
+          e.preventDefault();
+          e.stopPropagation();
+          sendMessage();
+        });
+      }
+      
+      // Enter key handler
+      if (messageInput) {
+        messageInput.addEventListener('keydown', function(e) {
+          if (e.key === 'Enter' && !e.shiftKey) {
+            console.log('Enter key pressed');
+            e.preventDefault();
+            e.stopPropagation();
+            sendMessage();
+          }
+        });
+      }
+      
+      function addMessageToUI(role, content) {
+        console.log('Adding message to UI:', role, content);
+        
+        const messagesContainer = document.querySelector('.messages-container');
+        if (!messagesContainer) {
+          console.error('Messages container not found');
+          return;
+        }
+        
+        const messageDiv = document.createElement('div');
+        
+        if (role === 'user') {
+          messageDiv.style.cssText = 'display: flex; align-items: flex-start; gap: 12px; margin-bottom: 16px; flex-direction: row-reverse;';
+          messageDiv.innerHTML = `
+            <div style="flex-shrink: 0;">
+              <div style="width: 32px; height: 32px; background-color: #d1d5db; border-radius: 50%; display: flex; align-items: center; justify-content: center;">
+                <svg style="width: 16px; height: 16px; color: #4b5563;" fill="currentColor" viewBox="0 0 24 24">
+                  <path d="M12 12c2.21 0 4-1.79 4-4s-1.79-4-4-4-4 1.79-4 4 1.79 4 4 4zm0 2c-2.67 0-8 1.34-8 4v2h16v-2c0-2.66-5.33-4-8-4z"/>
+                </svg>
+              </div>
+            </div>
+            <div style="flex: 1;">
+              <div style="background-color: #3b82f6; color: white; border-radius: 8px; padding: 12px;">
+                <p style="font-size: 14px; margin: 0;">${content}</p>
+              </div>
+            </div>
+          `;
+        } else {
+          messageDiv.style.cssText = 'display: flex; align-items: flex-start; gap: 12px; margin-bottom: 16px;';
+          messageDiv.innerHTML = `
+            <div style="flex-shrink: 0;">
+              <div style="width: 32px; height: 32px; background-color: #3b82f6; border-radius: 50%; display: flex; align-items: center; justify-content: center;">
+                <svg style="width: 16px; height: 16px; color: white;" fill="currentColor" viewBox="0 0 24 24">
+                  <path d="M20,2H4A2,2 0 0,0 2,4V22L6,18H20A2,2 0 0,0 22,16V4C22,2.89 21.1,2 20,2Z"/>
+                </svg>
+              </div>
+            </div>
+            <div style="flex: 1;">
+              <div style="background-color: #f3f4f6; color: #111827; border-radius: 8px; padding: 12px;">
+                <p style="font-size: 14px; margin: 0;">${content}</p>
+              </div>
+            </div>
+          `;
+        }
+        
+        messagesContainer.appendChild(messageDiv);
+        messagesContainer.scrollTop = messagesContainer.scrollHeight;
+      }
+    }
+    
+    // Set up modal handlers
+    openChatBtn.addEventListener('click', openChatModal);
+    chatBackdrop.addEventListener('click', closeChatModal);
+    
+    // Close on escape key
+    document.addEventListener('keydown', function(e) {
+      if (e.key === 'Escape' && !chatModal.classList.contains('hidden')) {
+        closeChatModal();
+      }
+    });
+  });
+</script>

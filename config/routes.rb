@@ -50,6 +50,9 @@ Rails.application.routes.draw do
   get "/auth/:provider/callback" => "sessions/omni_auths#create", as: :omniauth_callback
   get "/auth/failure" => "sessions/omni_auths#failure", as: :omniauth_failure
 
+  # Dashboard and chat interface routes
+  get "/chat_interface" => "chats#interface"
+  
   # Defines the root path route ("/")
-  root "chats#index"
+  root "dashboard#index"
 end
