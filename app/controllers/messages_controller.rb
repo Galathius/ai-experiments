@@ -269,7 +269,13 @@ class MessagesController < ApplicationController
     base_prompt += "- If asked about people, reference their emails or calendar events\n"
     base_prompt += "- Be helpful and professional\n"
     base_prompt += "- If you don't have enough information, say so clearly\n"
-    base_prompt += "- For scheduling requests, mention you'd need calendar access to check availability\n"
+    base_prompt += "- For scheduling requests, mention you'd need calendar access to check availability\n\n"
+    base_prompt += "SPECIAL FORMATTING for calendar events:\n"
+    base_prompt += "When showing calendar events, use this exact format so they render as cards:\n"
+    base_prompt += "[CALENDAR_EVENTS]\n"
+    base_prompt += "- event_id: unique_id | title: Event Title | start: YYYY-MM-DD HH:MM | end: YYYY-MM-DD HH:MM | location: Location\n"
+    base_prompt += "[/CALENDAR_EVENTS]\n"
+    base_prompt += "Always include this formatting when listing calendar events.\n"
 
     base_prompt
   end
