@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema[8.0].define(version: 2025_07_07_115250) do
+ActiveRecord::Schema[8.0].define(version: 2025_07_07_180033) do
   # These are extensions that must be enabled in order to support this database
   enable_extension "pg_catalog.plpgsql"
   enable_extension "vector"
@@ -43,6 +43,19 @@ ActiveRecord::Schema[8.0].define(version: 2025_07_07_115250) do
     t.index ["start_time"], name: "index_calendar_events_on_start_time"
     t.index ["status"], name: "index_calendar_events_on_status"
     t.index ["user_id"], name: "index_calendar_events_on_user_id"
+  end
+
+  create_table "calendars", force: :cascade do |t|
+    t.bigint "user_id", null: false
+    t.string "next_page_token"
+    t.datetime "last_sync_at"
+    t.integer "total_events_imported", default: 0
+    t.string "sync_status", default: "idle"
+    t.text "last_error"
+    t.string "last_sync_token"
+    t.datetime "created_at", null: false
+    t.datetime "updated_at", null: false
+    t.index ["user_id"], name: "index_calendars_on_user_id", unique: true
   end
 
   create_table "chats", force: :cascade do |t|
@@ -108,6 +121,18 @@ ActiveRecord::Schema[8.0].define(version: 2025_07_07_115250) do
     t.datetime "created_at", null: false
     t.datetime "updated_at", null: false
     t.index ["user_id"], name: "index_hubspot_notes_on_user_id"
+  end
+
+  create_table "mailboxes", force: :cascade do |t|
+    t.bigint "user_id", null: false
+    t.string "next_page_token"
+    t.datetime "last_sync_at"
+    t.integer "total_emails_imported", default: 0
+    t.string "sync_status", default: "idle"
+    t.text "last_error"
+    t.datetime "created_at", null: false
+    t.datetime "updated_at", null: false
+    t.index ["user_id"], name: "index_mailboxes_on_user_id", unique: true
   end
 
   create_table "messages", force: :cascade do |t|
@@ -185,10 +210,12 @@ ActiveRecord::Schema[8.0].define(version: 2025_07_07_115250) do
 
   add_foreign_key "action_logs", "users"
   add_foreign_key "calendar_events", "users"
+  add_foreign_key "calendars", "users"
   add_foreign_key "chats", "users"
   add_foreign_key "emails", "users"
   add_foreign_key "hubspot_contacts", "users"
   add_foreign_key "hubspot_notes", "users"
+  add_foreign_key "mailboxes", "users"
   add_foreign_key "messages", "chats"
   add_foreign_key "notifications", "users"
   add_foreign_key "omni_auth_identities", "users"

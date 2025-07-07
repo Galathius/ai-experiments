@@ -9,45 +9,29 @@ class GmailService
     @gmail.authorization = build_authorization
   end
 
-  def import_emails(limit: 50)
+  def import_emails(batch_size: 100)
     return unless @gmail.authorization
 
-    # Get list of message IDs
-    message_list = @gmail.list_user_messages(
-      "me",
-      max_results: limit,
-      q: "-in:spam -in:trash" # Exclude spam and trash
-    )
+    mailbox = @user.get_or_create_mailbox
+    return if mailbox.syncing?
 
-    return [] unless message_list.messages
-
-    emails_imported = 0
-    message_list.messages.each do |message|
-      begin
-        # Skip if already imported
-        next if Email.exists?(gmail_id: message.id)
-
-        # Get full message details with body content
-        full_message = @gmail.get_user_message("me", message.id, format: "full")
-
-        # Extract email data
-        email_data = extract_email_data(full_message)
-
-        # Create email record
-        email = @user.emails.create!(email_data)
-
-        # Generate and store embedding
-        EmbeddingService.generate_embedding_for_email(email)
-
-        emails_imported += 1
-        puts "Imported email: #{email.subject}"
-
-      rescue => e
-        puts "Error importing email #{message.id}: #{e.message}"
-      end
+    begin
+      mailbox.start_sync!
+      total_imported = perform_incremental_sync(mailbox, batch_size)
+      mailbox.complete_sync!
+      total_imported
+    rescue => e
+      mailbox.fail_sync!(e.message)
+      raise e
     end
+  end
 
-    emails_imported
+  def reset_and_import_all(batch_size: 100)
+    return unless @gmail.authorization
+
+    mailbox = @user.get_or_create_mailbox
+    mailbox.reset_sync!
+    import_emails(batch_size: batch_size)
   end
 
   def send_email(to_email:, subject:, body:)
@@ -76,6 +60,80 @@ class GmailService
   end
 
   private
+
+  def perform_incremental_sync(mailbox, batch_size)
+    total_imported = 0
+    page_token = mailbox.next_page_token
+    processed_count = 0
+
+    sync_type = mailbox.initial_sync? ? "initial" : "incremental"
+    Rails.logger.info "Starting #{sync_type} Gmail sync for user #{@user.id}"
+
+    loop do
+      # Get list of message IDs with pagination
+      message_list = @gmail.list_user_messages(
+        "me",
+        max_results: batch_size,
+        page_token: page_token,
+        q: "-in:spam -in:trash" # Exclude spam and trash
+      )
+
+      break unless message_list.messages&.any?
+
+      # Process batch of messages
+      batch_imported = import_email_batch(message_list.messages)
+      total_imported += batch_imported
+      processed_count += message_list.messages.length
+
+      Rails.logger.info "Gmail sync progress: #{processed_count} processed, #{total_imported} imported"
+
+      # Update mailbox with current page token
+      page_token = message_list.next_page_token
+      mailbox.update!(next_page_token: page_token)
+
+      # If no more pages, we've reached the end
+      break unless page_token
+
+      # Rate limiting: sleep between batches to avoid hitting API limits
+      sleep(0.1)
+    end
+
+    Rails.logger.info "Gmail sync completed: #{total_imported} emails imported (#{sync_type})"
+    total_imported
+  end
+
+  def import_email_batch(messages)
+    emails_imported = 0
+
+    messages.each do |message|
+      begin
+        # Skip if already imported
+        next if Email.exists?(gmail_id: message.id)
+
+        # Get full message details with body content
+        full_message = @gmail.get_user_message("me", message.id, format: "full")
+
+        # Extract email data
+        email_data = extract_email_data(full_message)
+
+        # Create email record
+        email = @user.emails.create!(email_data)
+
+        # Generate and store embedding
+        EmbeddingService.generate_embedding_for_email(email)
+
+        emails_imported += 1
+        Rails.logger.debug "Imported email: #{email.subject} (#{email.gmail_id})"
+
+      rescue => e
+        Rails.logger.error "Error importing email #{message.id}: #{e.message}"
+        # Continue with next email instead of failing entire batch
+        next
+      end
+    end
+
+    emails_imported
+  end
 
   def create_email_message(to_email:, subject:, body:)
     # Get user's email address

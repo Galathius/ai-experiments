@@ -41,7 +41,7 @@ class SystemPromptService
     return "No specific context was found for this query, but you can still provide helpful assistance based on your general knowledge.\n\n" unless @context_items.any?
 
     prompt = "Here is relevant context from the user's emails, calendar, and HubSpot CRM:\n\n"
-    
+
     @context_items.each_with_index do |item, index|
       prompt += format_context_item(item, index)
     end

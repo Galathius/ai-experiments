@@ -6,7 +6,7 @@ class ImportEmailsJob < ApplicationJob
     gmail_service = GmailService.new(user)
 
     begin
-      emails_imported = gmail_service.import_emails(limit: 50)
+      emails_imported = gmail_service.import_emails
       Rails.logger.info "Imported #{emails_imported} emails for user #{user.id}"
     rescue => e
       Rails.logger.error "Email import failed for user #{user.id}: #{e.message}"

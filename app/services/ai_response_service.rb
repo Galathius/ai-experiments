@@ -7,10 +7,10 @@ class AIResponseService
 
   def generate_response(user_input, context_items)
     system_prompt = SystemPromptService.new(context_items, @user).build_prompt
-    
+
     begin
       messages = build_conversation_history(system_prompt)
-      
+
       response = @client.chat(
         parameters: {
           model: "gpt-4o-mini",
@@ -38,12 +38,12 @@ class AIResponseService
   private
 
   def build_conversation_history(system_prompt)
-    messages = [{ role: "system", content: system_prompt }]
-    
+    messages = [ { role: "system", content: system_prompt } ]
+
     @chat.messages.order(:created_at).each do |message|
       messages << { role: message.role, content: message.content }
     end
-    
+
     messages
   end
 

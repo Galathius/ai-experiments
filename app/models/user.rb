@@ -9,6 +9,8 @@ class User < ApplicationRecord
   has_many :action_logs, dependent: :destroy
   has_many :tasks, dependent: :destroy
   has_many :notifications, dependent: :destroy
+  has_one :mailbox, dependent: :destroy
+  has_one :calendar, dependent: :destroy
 
   validates :email_address, presence: true,
     format: { with: URI::MailTo::EMAIL_REGEXP },
@@ -39,6 +41,14 @@ class User < ApplicationRecord
 
   def connected_to_hubspot?
     hubspot_identity.present?
+  end
+
+  def get_or_create_mailbox
+    mailbox || create_mailbox!
+  end
+
+  def get_or_create_calendar
+    calendar || create_calendar!
   end
 
   private

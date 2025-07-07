@@ -8,53 +8,29 @@ class CalendarService
     @calendar.authorization = build_authorization
   end
 
-  def import_events(limit: 50)
+  def import_events(batch_size: 100)
     return 0 unless @calendar.authorization
 
-    events_imported = 0
+    calendar = @user.get_or_create_calendar
+    return if calendar.syncing?
 
-    # Get events from primary calendar
-    result = @calendar.list_events(
-      "primary",
-      max_results: limit,
-      single_events: true,
-      order_by: "startTime",
-      time_min: (Time.current - 30.days).iso8601,
-      time_max: (Time.current + 90.days).iso8601
-    )
-
-    return 0 unless result.items
-
-    # Get existing google_event_ids to avoid duplicates
-    existing_ids = @user.calendar_events.pluck(:google_event_id).to_set
-
-    result.items.each do |event|
-      begin
-        # Skip if already imported
-        next if existing_ids.include?(event.id)
-
-        # Skip events without start time
-        next unless event.start
-
-        # Extract event data
-        event_data = extract_event_data(event)
-
-        # Create calendar event record
-        calendar_event = @user.calendar_events.create!(event_data)
-
-        # Generate and store embedding
-        EmbeddingService.generate_embedding_for_calendar_event(calendar_event)
-
-        events_imported += 1
-        puts "Imported event: #{calendar_event.title}"
-
-      rescue => e
-        puts "Error importing event #{event.id}: #{e.message}"
-        Rails.logger.error "Error importing event #{event.id}: #{e.message}"
-      end
+    begin
+      calendar.start_sync!
+      total_imported = perform_incremental_sync(calendar, batch_size)
+      calendar.complete_sync!
+      total_imported
+    rescue => e
+      calendar.fail_sync!(e.message)
+      raise e
     end
+  end
 
-    events_imported
+  def reset_and_import_all(batch_size: 100)
+    return 0 unless @calendar.authorization
+
+    calendar = @user.get_or_create_calendar
+    calendar.reset_sync!
+    import_events(batch_size: batch_size)
   end
 
   def create_event(title:, start_time:, end_time:, description: nil, attendees: [], location: nil)
@@ -103,6 +79,142 @@ class CalendarService
   end
 
   private
+
+  def perform_incremental_sync(calendar, batch_size)
+    total_imported = 0
+    page_token = calendar.next_page_token
+    sync_token = calendar.last_sync_token
+    processed_count = 0
+
+    sync_type = calendar.initial_sync? ? "initial" : "incremental"
+    Rails.logger.info "Starting #{sync_type} Calendar sync for user #{@user.id}"
+
+    # For incremental sync, use sync_token if available, otherwise fall back to time range
+    if sync_token.present?
+      # Incremental sync using sync token
+      total_imported = sync_with_token(calendar, sync_token)
+    else
+      # Full sync or first sync - use pagination
+      total_imported = sync_with_pagination(calendar, batch_size)
+    end
+
+    Rails.logger.info "Calendar sync completed: #{total_imported} events imported (#{sync_type})"
+    total_imported
+  end
+
+  def sync_with_token(calendar, sync_token)
+    events_imported = 0
+
+    begin
+      # Use sync token for incremental updates
+      result = @calendar.list_events(
+        "primary",
+        sync_token: sync_token,
+        single_events: true
+      )
+
+      if result.items&.any?
+        events_imported = import_event_batch(result.items)
+      end
+
+      # Update sync token for next incremental sync
+      if result.next_sync_token
+        calendar.update!(last_sync_token: result.next_sync_token)
+      end
+
+    rescue Google::Apis::ClientError => e
+      if e.status_code == 410 # Gone - sync token expired
+        Rails.logger.info "Sync token expired, falling back to full sync"
+        calendar.reset_sync!
+        return sync_with_pagination(calendar, 100)
+      else
+        raise e
+      end
+    end
+
+    events_imported
+  end
+
+  def sync_with_pagination(calendar, batch_size)
+    total_imported = 0
+    page_token = calendar.next_page_token
+    processed_count = 0
+
+    loop do
+      # Get events from primary calendar with pagination
+      result = @calendar.list_events(
+        "primary",
+        max_results: batch_size,
+        page_token: page_token,
+        single_events: true,
+        order_by: "startTime",
+        time_min: (Time.current - 90.days).iso8601,
+        time_max: (Time.current + 180.days).iso8601
+      )
+
+      break unless result.items&.any?
+
+      # Process batch of events
+      batch_imported = import_event_batch(result.items)
+      total_imported += batch_imported
+      processed_count += result.items.length
+
+      Rails.logger.info "Calendar sync progress: #{processed_count} processed, #{total_imported} imported"
+
+      # Update calendar with current page token
+      page_token = result.next_page_token
+      calendar.update!(next_page_token: page_token)
+
+      # Store sync token for future incremental syncs
+      if result.next_sync_token
+        calendar.update!(last_sync_token: result.next_sync_token)
+      end
+
+      # If no more pages, we've reached the end
+      break unless page_token
+
+      # Rate limiting
+      sleep(0.1)
+    end
+
+    total_imported
+  end
+
+  def import_event_batch(events)
+    events_imported = 0
+    existing_ids = @user.calendar_events.pluck(:google_event_id).to_set
+
+    events.each do |event|
+      begin
+        # Skip if already imported
+        next if existing_ids.include?(event.id)
+
+        # Skip events without start time
+        next unless event.start
+
+        # Skip cancelled events
+        next if event.status == "cancelled"
+
+        # Extract event data
+        event_data = extract_event_data(event)
+
+        # Create calendar event record
+        calendar_event = @user.calendar_events.create!(event_data)
+
+        # Generate and store embedding
+        EmbeddingService.generate_embedding_for_calendar_event(calendar_event)
+
+        events_imported += 1
+        Rails.logger.debug "Imported event: #{calendar_event.title} (#{calendar_event.google_event_id})"
+
+      rescue => e
+        Rails.logger.error "Error importing event #{event.id}: #{e.message}"
+        next
+      end
+    end
+
+    events_imported
+  end
 
   def build_authorization
     identity = @user.omni_auth_identities.find_by(provider: "google_oauth2")
