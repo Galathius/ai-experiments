@@ -14,8 +14,7 @@ Rails.application.routes.draw do
   post "/google/import_emails" => "google#import_emails", as: :import_google_emails
   post "/google/import_calendar" => "google#import_calendar", as: :import_google_calendar
 
-  resource :session
-  resources :passwords, param: :token
+  resource :session, only: [:new, :destroy]
   # Define your application routes per the DSL in https://guides.rubyonrails.org/routing.html
 
   # Reveal health status on /up that returns 200 if the app boots with no exceptions, otherwise 500.

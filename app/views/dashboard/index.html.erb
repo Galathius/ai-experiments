@@ -183,7 +183,7 @@
                 <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-red-100 text-red-800">
                   Not Connected
                 </span>
-                <%= link_to "/auth/hubspot", class: "bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-lg text-sm font-medium transition-colors cursor-pointer" do %>
+                <%= button_to "/auth/hubspot", method: :post, data: {turbo: false}, class: "bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-lg text-sm font-medium transition-colors cursor-pointer" do %>
                   Connect HubSpot
                 <% end %>
               <% end %>
