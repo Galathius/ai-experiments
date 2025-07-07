@@ -341,8 +341,8 @@ export default class extends Controller {
           </div>
         </div>
         <div class="flex-1">
-          <div class="bg-gray-100 rounded-lg p-4">
-            <p class="text-gray-900">I can answer questions about any Jump meeting. What do you want to know?</p>
+          <div class="bg-gray-100 rounded-xl p-3">
+            <p class="text-gray-900 text-sm m-0 leading-snug">I can answer questions about any Jump meeting. What do you want to know?</p>
           </div>
         </div>
       </div>

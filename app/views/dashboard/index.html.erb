@@ -347,10 +347,10 @@
 <!-- Chat Popup Modal (initially hidden) -->
 <div id="chat-modal" class="fixed inset-0 z-50 hidden" style="overflow: hidden;">
   <!-- Backdrop -->
-  <div class="fixed inset-0 bg-black bg-opacity-50 cursor-pointer" id="chat-backdrop"></div>
+  <div class="fixed inset-0 bg-black/20 cursor-pointer" id="chat-backdrop"></div>
   
   <!-- Modal -->
-  <div class="fixed inset-4 md:inset-8 lg:inset-16 bg-white rounded-lg shadow-xl" style="display: flex; flex-direction: column; overflow: hidden; max-height: calc(100vh - 64px);">
+  <div class="fixed inset-4 md:inset-8 lg:inset-16 bg-white/95 backdrop-blur-sm rounded-lg shadow-xl" style="display: flex; flex-direction: column; overflow: hidden; max-height: calc(100vh - 64px);">
     <!-- Chat content will be loaded here -->
     <div id="modal-content" style="flex: 1; display: flex; flex-direction: column; overflow: hidden; height: 100%;">
       <!-- Loading state -->
@@ -409,6 +409,15 @@ document.addEventListener('DOMContentLoaded', function() {
         this.bindEvents();
         this.showChatTab();
         if (this.elements.messageInput) this.elements.messageInput.focus();
+        
+        // Set initial highlight for current chat
+        const currentChatId = document.getElementById('current-chat-id')?.value;
+        if (currentChatId) {
+          this.updateHistoryHighlight(currentChatId);
+        }
+        
+        // Auto-scroll to bottom on opening
+        this.scrollToBottom();
       },
       
       bindEvents() {
@@ -467,31 +476,25 @@ document.addEventListener('DOMContentLoaded', function() {
       },
       
       showChatTab() {
-        this.elements.chatContent.style.display = 'flex';
-        this.elements.historyContent.style.display = 'none';
+        this.elements.chatContent.classList.remove('hidden');
+        this.elements.chatContent.classList.add('flex');
+        this.elements.historyContent.classList.add('hidden');
+        this.elements.historyContent.classList.remove('flex');
         
-        this.elements.chatTab.style.borderBottomColor = '#111827';
-        this.elements.chatTab.style.color = '#111827';
-        this.elements.chatTab.style.fontWeight = '500';
-        
-        this.elements.historyTab.style.borderBottomColor = 'transparent';
-        this.elements.historyTab.style.color = '#6b7280';
-        this.elements.historyTab.style.fontWeight = '400';
+        this.elements.chatTab.className = 'tab-button active-tab py-4 mr-8 border-none bg-transparent text-base font-medium cursor-pointer border-b-2 border-gray-900 text-gray-900';
+        this.elements.historyTab.className = 'tab-button py-4 border-none bg-transparent text-base font-normal cursor-pointer border-b-2 border-transparent text-gray-500';
         
         if (this.elements.messageInput) this.elements.messageInput.focus();
       },
       
       showHistoryTab() {
-          this.elements.historyContent.style.display = 'flex';
-          this.elements.chatContent.style.display = 'none';
+        this.elements.historyContent.classList.remove('hidden');
+        this.elements.historyContent.classList.add('flex');
+        this.elements.chatContent.classList.add('hidden');
+        this.elements.chatContent.classList.remove('flex');
 
-        this.elements.historyTab.style.borderBottomColor = '#111827';
-        this.elements.historyTab.style.color = '#111827';
-        this.elements.historyTab.style.fontWeight = '500';
-
-        this.elements.chatTab.style.borderBottomColor = 'transparent';
-        this.elements.chatTab.style.color = '#6b7280';
-        this.elements.chatTab.style.fontWeight = '400';
+        this.elements.historyTab.className = 'tab-button py-4 border-none bg-transparent text-base font-medium cursor-pointer border-b-2 border-gray-900 text-gray-900';
+        this.elements.chatTab.className = 'tab-button active-tab py-4 mr-8 border-none bg-transparent text-base font-normal cursor-pointer border-b-2 border-transparent text-gray-500';
       },
       
       newThread() {
@@ -499,14 +502,15 @@ document.addEventListener('DOMContentLoaded', function() {
         if (chatIdInput) chatIdInput.value = '';
         
         this.elements.messagesContainer.innerHTML = `
-          <div style="margin-bottom: 24px;">
-            <div style="background-color: #f3f4f6; border-radius: 16px; padding: 16px; max-width: 80%;">
-              <p style="color: #111827; font-size: 16px; margin: 0; line-height: 1.5;">I can answer questions about any Jump meeting. What do you want to know?</p>
+          <div class="mb-3">
+            <div class="bg-gray-100 rounded-xl p-3 max-w-[80%]">
+              <p class="text-gray-900 text-sm m-0 leading-snug">I can answer questions about any Jump meeting. What do you want to know?</p>
             </div>
           </div>
         `;
         
         this.showChatTab();
+        this.updateChatTitle("New Chat");
       },
       
       async loadChat(chatId) {
@@ -524,9 +528,9 @@ document.addEventListener('DOMContentLoaded', function() {
           const data = await response.json();
           
           this.elements.messagesContainer.innerHTML = `
-            <div style="margin-bottom: 24px;">
-              <div style="background-color: #f3f4f6; border-radius: 16px; padding: 16px; max-width: 80%;">
-                <p style="color: #111827; font-size: 16px; margin: 0; line-height: 1.5;">I can answer questions about any Jump meeting. What do you want to know?</p>
+            <div class="mb-3">
+              <div class="bg-gray-100 rounded-xl p-3 max-w-[80%]">
+                <p class="text-gray-900 text-sm m-0 leading-snug">I can answer questions about any Jump meeting. What do you want to know?</p>
               </div>
             </div>
           `;
@@ -538,6 +542,8 @@ document.addEventListener('DOMContentLoaded', function() {
           }
           
           this.scrollToBottom();
+          this.updateHistoryHighlight(chatId);
+          this.updateChatTitle(data.chat.title);
         } catch (error) {
           console.error('Error loading chat:', error);
         }
@@ -572,6 +578,19 @@ document.addEventListener('DOMContentLoaded', function() {
           if (data.chat_id) {
             const chatIdInput = document.getElementById('current-chat-id');
             if (chatIdInput) chatIdInput.value = data.chat_id;
+            
+            // If this is a new chat, refresh the history
+            if (!chatId) {
+              this.refreshHistory();
+            }
+            
+            // Update highlight for current chat
+            this.updateHistoryHighlight(data.chat_id);
+            
+            // Update chat title if it's provided
+            if (data.chat_title) {
+              this.updateChatTitle(data.chat_title);
+            }
           }
         } catch (error) {
           console.error('Error sending message:', error);
@@ -583,17 +602,17 @@ document.addEventListener('DOMContentLoaded', function() {
         const messageDiv = document.createElement('div');
         
         if (role === 'user') {
-          messageDiv.style.cssText = 'margin-bottom: 24px; display: flex; justify-content: flex-end;';
+          messageDiv.className = 'mb-3 flex justify-end';
           messageDiv.innerHTML = `
-            <div style="background-color: #e5e7eb; max-width: 80%; border-radius: 16px; padding: 16px;">
-              <p style="color: #111827; font-size: 16px; margin: 0; line-height: 1.5;">${content}</p>
+            <div class="bg-gray-200 max-w-[80%] rounded-xl p-3">
+              <p class="text-gray-900 text-sm m-0 leading-snug">${content}</p>
             </div>
           `;
         } else {
-          messageDiv.style.cssText = 'margin-bottom: 24px;';
+          messageDiv.className = 'mb-3';
           messageDiv.innerHTML = `
-            <div style="background-color: #f3f4f6; max-width: 80%; border-radius: 16px; padding: 16px;">
-              <p style="color: #111827; font-size: 16px; margin: 0; line-height: 1.5;">${content}</p>
+            <div class="bg-gray-100 max-w-[80%] rounded-xl p-3">
+              <p class="text-gray-900 text-sm m-0 leading-snug">${content}</p>
             </div>
           `;
         }
@@ -604,6 +623,65 @@ document.addEventListener('DOMContentLoaded', function() {
       
       scrollToBottom() {
         this.elements.messagesContainer.scrollTop = this.elements.messagesContainer.scrollHeight;
+      },
+      
+      async refreshHistory() {
+        try {
+          const response = await fetch('/chat_interface', {
+            headers: {
+              'Accept': 'text/html',
+              'X-CSRF-Token': document.querySelector('meta[name="csrf-token"]').content
+            }
+          });
+          
+          const html = await response.text();
+          const tempDiv = document.createElement('div');
+          tempDiv.innerHTML = html;
+          
+          const newHistoryList = tempDiv.querySelector('#chat-history-list');
+          const currentHistoryList = document.getElementById('chat-history-list');
+          
+          if (newHistoryList && currentHistoryList) {
+            currentHistoryList.innerHTML = newHistoryList.innerHTML;
+            
+            // Rebind history item clicks
+            document.querySelectorAll('.chat-history-item').forEach(item => {
+              item.onclick = () => {
+                const chatId = item.getAttribute('data-chat-id');
+                if (chatId) {
+                  this.loadChat(chatId);
+                  this.showChatTab();
+                }
+              };
+            });
+            
+            // Update highlight for current chat
+            const currentChatId = document.getElementById('current-chat-id')?.value;
+            if (currentChatId) {
+              this.updateHistoryHighlight(currentChatId);
+            }
+          }
+        } catch (error) {
+          console.error('Error refreshing history:', error);
+        }
+      },
+      
+      updateHistoryHighlight(currentChatId) {
+        document.querySelectorAll('.chat-history-item').forEach(item => {
+          const chatId = item.getAttribute('data-chat-id');
+          if (chatId === currentChatId) {
+            item.className = 'chat-history-item p-4 bg-blue-50 border-blue-500 rounded-xl cursor-pointer border mb-3';
+          } else {
+            item.className = 'chat-history-item p-4 bg-white border-gray-200 rounded-xl cursor-pointer border mb-3';
+          }
+        });
+      },
+      
+      updateChatTitle(title) {
+        const chatTitleElement = document.getElementById('chat-title');
+        if (chatTitleElement) {
+          chatTitleElement.textContent = title || 'New Chat';
+        }
       }
     };
     

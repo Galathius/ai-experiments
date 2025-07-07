@@ -1,38 +1,36 @@
 <!-- Chat Modal matching README mockup -->
-<div style="width: 100%; height: 100%; display: flex; flex-direction: column; background: white;">
+<div class="w-full h-full flex flex-col bg-white">
   <!-- Header -->
-  <div style="display: flex; align-items: center; justify-content: space-between; padding: 20px 24px 16px; border-bottom: 1px solid #e5e7eb;">
-    <h1 style="font-size: 24px; font-weight: 600; color: #111827; margin: 0;">Ask Anything</h1>
-    <button id="close-chat-btn" style="color: #9ca3af; cursor: pointer; background: none; border: none; padding: 4px;">
-      <svg style="width: 24px; height: 24px;" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+  <div class="flex items-center justify-between px-6 py-5 pb-4 border-b border-gray-200">
+    <h1 class="text-2xl font-semibold text-gray-900 m-0">Ask Anything</h1>
+    <button id="close-chat-btn" class="text-gray-400 hover:text-gray-600 cursor-pointer bg-transparent border-none p-1">
+      <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path>
       </svg>
     </button>
   </div>
 
   <!-- Tab Navigation -->
-  <div style="display: flex; align-items: center; justify-content: space-between; padding: 0 24px; border-bottom: 1px solid #e5e7eb;">
-    <div style="display: flex;">
+  <div class="flex items-center justify-between px-6 border-b border-gray-200">
+    <div class="flex">
       <button 
         id="chat-tab" 
-        class="tab-button active-tab"
-        style="padding: 16px 0; margin-right: 32px; border: none; background: none; font-size: 16px; font-weight: 500; cursor: pointer; border-bottom: 2px solid #111827; color: #111827;"
+        class="tab-button active-tab py-4 mr-8 border-none bg-transparent text-base font-medium cursor-pointer border-b-2 border-gray-900 text-gray-900"
       >
         Chat
       </button>
       <button 
         id="history-tab" 
-        class="tab-button"
-        style="padding: 16px 0; border: none; background: none; font-size: 16px; font-weight: 400; cursor: pointer; border-bottom: 2px solid transparent; color: #6b7280;"
+        class="tab-button py-4 border-none bg-transparent text-base font-normal cursor-pointer border-b-2 border-transparent text-gray-500"
       >
         History
       </button>
     </div>
     <button 
       id="new-thread-btn"
-      style="display: flex; align-items: center; gap: 8px; padding: 8px 16px; background: none; border: none; font-size: 16px; font-weight: 400; color: #6b7280; cursor: pointer;"
+      class="flex items-center gap-2 px-4 py-2 bg-transparent border-none text-base font-normal text-gray-500 cursor-pointer hover:text-gray-700"
     >
-      <svg style="width: 16px; height: 16px;" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+      <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"/>
       </svg>
       New thread
@@ -40,31 +38,33 @@
   </div>
 
   <!-- Tab Content Container -->
-  <div style="flex: 1; position: relative; min-height: 0;">
+  <div class="flex-1 relative min-h-0">
     
     <!-- Chat Tab Content -->
-    <div id="chat-content" class="tab-content" style="position: absolute; top: 0; left: 0; right: 0; bottom: 0; display: flex; flex-direction: column;">
+    <div id="chat-content" class="tab-content absolute inset-0 flex flex-col">
       <!-- Context Bar -->
-      <div style="padding: 16px 24px; background: #f9fafb; border-bottom: 1px solid #e5e7eb; text-align: center; flex-shrink: 0;">
-        <div style="font-size: 14px; color: #6b7280; margin-bottom: 4px;">Context set to all meetings</div>
-        <div style="font-size: 12px; color: #9ca3af;"><%= Time.current.strftime("%l:%M%P - %B %d, %Y") %></div>
+      <div id="context-bar" class="px-4 py-2 bg-gray-50 border-b border-gray-200 text-center flex-shrink-0">
+        <div class="text-sm text-gray-500 mb-0.5">
+          <span id="chat-title"><%= @current_chat&.title || "New Chat" %></span>
+        </div>
+        <div class="text-xs text-gray-400"><%= Time.current.strftime("%l:%M%P - %B %d, %Y") %></div>
       </div>
       
       <!-- Messages Area -->
-      <div class="messages-container" style="flex: 1; overflow-y: scroll; padding: 24px; min-height: 0;">
+      <div class="messages-container flex-1 overflow-y-scroll p-4 min-h-0">
         <!-- Initial AI Message -->
-        <div style="margin-bottom: 24px;">
-          <div style="background-color: #f3f4f6; border-radius: 16px; padding: 16px; max-width: 80%;">
-            <p style="color: #111827; font-size: 16px; margin: 0; line-height: 1.5;">I can answer questions about any Jump meeting. What do you want to know?</p>
+        <div class="mb-3">
+          <div class="bg-gray-100 rounded-xl p-3 max-w-[80%]">
+            <p class="text-gray-900 text-sm m-0 leading-snug">I can answer questions about any Jump meeting. What do you want to know?</p>
           </div>
         </div>
         
         <!-- Dynamic messages from database -->
         <% if @current_chat&.messages&.any? %>
           <% @current_chat.messages.ordered.each do |message| %>
-            <div style="margin-bottom: 24px; <%= 'display: flex; justify-content: flex-end;' if message.role == 'user' %>">
-              <div style="<%= message.role == 'user' ? 'background-color: #e5e7eb; max-width: 80%;' : 'background-color: #f3f4f6; max-width: 80%;' %> border-radius: 16px; padding: 16px;">
-                <p style="color: #111827; font-size: 16px; margin: 0; line-height: 1.5;"><%= simple_format(message.content) %></p>
+            <div class="mb-3 <%= 'flex justify-end' if message.role == 'user' %>">
+              <div class="<%= message.role == 'user' ? 'bg-gray-200' : 'bg-gray-100' %> rounded-xl p-3 max-w-[80%]">
+                <p class="text-gray-900 text-sm m-0 leading-snug"><%= simple_format(message.content) %></p>
               </div>
             </div>
           <% end %>
@@ -72,61 +72,29 @@
       </div>
       
       <!-- Input Area -->
-      <div style="flex-shrink: 0; padding: 24px; border-top: 1px solid #e5e7eb; background: white;">
+      <div class="flex-shrink-0 p-4 border-t border-gray-200 bg-white">
         <form id="chat-form">
-          <div style="position: relative; border: 1px solid #d1d5db; border-radius: 12px; padding: 16px;">
+          <div class="relative border border-gray-300 rounded-xl p-3">
             <textarea 
               id="message-input" 
               name="content"
               placeholder="Ask anything about your meetings..."
-              style="width: 100%; border: none; outline: none; resize: none; font-size: 16px; line-height: 1.5; background: transparent;"
+              class="w-full border-none outline-none resize-none text-sm leading-snug bg-transparent"
               rows="1"
             ></textarea>
             
             <!-- Input Controls -->
-            <div style="display: flex; align-items: center; justify-content: space-between; margin-top: 12px;">
-              <div style="display: flex; align-items: center; gap: 12px;">
-                <!-- Plus button -->
-                <button type="button" style="background: none; border: none; cursor: pointer; padding: 4px;">
-                  <svg style="width: 20px; height: 20px; color: #6b7280;" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"/>
-                  </svg>
-                </button>
-                
-                <!-- Dropdown -->
-                <select style="background: none; border: none; font-size: 14px; color: #6b7280; outline: none; cursor: pointer;">
-                  <option>All meetings</option>
-                  <option>Recent meetings</option>
-                  <option>This week</option>
-                </select>
-                
-                <!-- Attachment button -->
-                <button type="button" style="background: none; border: none; cursor: pointer; padding: 4px;">
-                  <svg style="width: 20px; height: 20px; color: #6b7280;" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15.172 7l-6.586 6.586a2 2 0 102.828 2.828l6.414-6.586a4 4 0 00-5.656-5.656l-6.415 6.585a6 6 0 108.486 8.486L20.5 13"/>
-                  </svg>
-                </button>
-              </div>
-              
-              <div style="display: flex; align-items: center; gap: 12px;">
-                <!-- Microphone button -->
-                <button type="button" style="background: none; border: none; cursor: pointer; padding: 4px;">
-                  <svg style="width: 20px; height: 20px; color: #6b7280;" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 11a7 7 0 01-7 7m0 0a7 7 0 01-7-7m7 7v4m0 0H8m4 0h4m-4-8a3 3 0 01-3-3V5a3 3 0 116 0v6a3 3 0 01-3 3z"/>
-                  </svg>
-                </button>
-                
-                <!-- Send button -->
-                <button 
-                  type="button" 
-                  id="send-btn" 
-                  style="background-color: #3b82f6; color: white; border: none; border-radius: 50%; width: 32px; height: 32px; display: flex; align-items: center; justify-content: center; cursor: pointer;"
-                >
-                  <svg style="width: 16px; height: 16px;" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 19l9 2-9-18-9 18 9-2zm0 0v-8"/>
-                  </svg>
-                </button>
-              </div>
+            <div class="flex items-center justify-end mt-2">
+              <!-- Send button -->
+              <button 
+                type="button" 
+                id="send-btn" 
+                class="bg-blue-600 hover:bg-blue-700 text-white border-none rounded-full w-7 h-7 flex items-center justify-center cursor-pointer"
+              >
+                <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 19l9 2-9-18-9 18 9-2zm0 0v-8"/>
+                </svg>
+              </button>
             </div>
           </div>
         </form>
@@ -134,9 +102,9 @@
     </div>
 
     <!-- History Tab Content -->
-    <div id="history-content" class="tab-content" style="position: absolute; top: 0; left: 0; right: 0; bottom: 0; display: none; flex-direction: column; background: white;">
-      <div style="flex: 1; overflow-y: auto; padding: 24px;">
-        <h3 style="margin: 0 0 20px 0; font-size: 18px; color: #111827;">Chat History</h3>
+    <div id="history-content" class="tab-content absolute inset-0 hidden flex-col bg-white">
+      <div class="flex-1 overflow-y-auto p-6">
+        <h3 class="m-0 mb-5 text-lg text-gray-900">Chat History</h3>
         
         
         <!-- Chat History List -->
@@ -144,14 +112,13 @@
           <% if @chats.any? %>
             <% @chats.each do |chat| %>
               <div 
-                class="chat-history-item"
+                class="chat-history-item p-4 <%= chat == @current_chat ? 'bg-blue-50 border-blue-500' : 'bg-white border-gray-200' %> rounded-xl cursor-pointer border mb-3"
                 data-chat-id="<%= chat.id %>"
-                style="padding: 16px; background-color: white; border-radius: 12px; cursor: pointer; border: 1px solid #e5e7eb; margin-bottom: 12px; <%= 'border-color: #3b82f6; background-color: #eff6ff;' if chat == @current_chat %>"
               >
-                <div style="font-weight: 500; font-size: 16px; color: #111827; margin-bottom: 8px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;">
+                <div class="font-medium text-sm text-gray-900 mb-2 overflow-hidden text-ellipsis whitespace-nowrap">
                   <%= chat.title %>
                 </div>
-                <div style="font-size: 14px; color: #6b7280;">
+                <div class="text-xs text-gray-500">
                   <%= time_ago_in_words(chat.updated_at) %> ago
                   <% if chat.messages.any? %>
                     • <%= pluralize(chat.messages.count, 'message') %>
@@ -160,12 +127,12 @@
               </div>
             <% end %>
           <% else %>
-            <div style="text-align: center; padding: 48px 24px; color: #6b7280;">
-              <svg style="width: 48px; height: 48px; margin: 0 auto 16px; color: #d1d5db;" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <div class="text-center py-12 px-6 text-gray-500">
+              <svg class="w-12 h-12 mx-auto mb-4 text-gray-300" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 12h.01M12 12h.01M16 12h.01M21 12c0 4.418-4.03 8-9 8a9.863 9.863 0 01-4.255-.949L3 20l1.395-3.72C3.512 15.042 3 13.574 3 12c0-4.418 4.03-8 9-8s9 3.582 9 8z"/>
               </svg>
-              <p style="font-size: 16px; margin: 0;">No chat history yet</p>
-              <p style="font-size: 14px; margin: 8px 0 0; color: #9ca3af;">Start a conversation to see your chat history here</p>
+              <p class="text-sm m-0">No chat history yet</p>
+              <p class="text-xs mt-2 mb-0 text-gray-400">Start a conversation to see your chat history here</p>
             </div>
           <% end %>
         </div>
