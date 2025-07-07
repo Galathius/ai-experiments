@@ -67,40 +67,18 @@ module Tools
     end
 
     def create_hubspot_note(contact)
-      # Create note in HubSpot via API
-      hubspot_service = HubspotService.new(
-        user.hubspot_identity.access_token,
-        user.hubspot_identity
-      )
-
-      hubspot_response = hubspot_service.create_note(
+      # Use the new HubSpot service
+      create_note_service = Hubspot::CreateNote.new(user)
+      result = create_note_service.create(
         contact.hubspot_contact_id,
         params["note_content"]
       )
 
-      unless hubspot_response
-        raise "Failed to create note in HubSpot"
+      unless result[:success]
+        raise "Failed to create note in HubSpot: #{result[:error]}"
       end
 
-      # Create local note record with HubSpot ID
-      created_date = if hubspot_response.dig("properties", "hs_createdate")
-                      Time.parse(hubspot_response.dig("properties", "hs_createdate"))
-      else
-                      Time.current
-      end
-
-      note = user.hubspot_notes.create!(
-        hubspot_contact: contact,
-        hubspot_contact_id: contact.hubspot_contact_id,
-        content: params["note_content"],
-        created_date: created_date,
-        hubspot_note_id: hubspot_response["id"]
-      )
-
-      # Generate embedding for the note
-      GenerateEmbeddingJob.perform_later(note)
-
-      note
+      result[:local_note]
     rescue => e
       Rails.logger.error "Failed to create HubSpot note: #{e.message}"
       nil

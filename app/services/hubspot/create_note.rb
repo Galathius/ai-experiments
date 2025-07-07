@@ -34,16 +34,6 @@ module Hubspot
       end
     end
 
-    def create_for_contact_email(contact_email, note_content, additional_properties = {})
-      # Find the contact by email
-      contact = @user.hubspot_contacts.find_by(email: contact_email)
-      unless contact
-        return { success: false, error: "Contact not found with email: #{contact_email}" }
-      end
-
-      create(contact.hubspot_contact_id, note_content, additional_properties)
-    end
-
     private
 
     def create_hubspot_note(note_content, additional_properties)

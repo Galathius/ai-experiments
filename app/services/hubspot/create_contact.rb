@@ -29,27 +29,6 @@ module Hubspot
       end
     end
 
-    def create_from_email(email_address, additional_properties = {})
-      # Extract name from email if not provided
-      properties = {
-        "email" => email_address
-      }.merge(additional_properties)
-
-      # Try to extract first name from email if not provided
-      if properties["firstname"].blank?
-        username = email_address.split("@").first
-        if username.include?(".")
-          name_parts = username.split(".")
-          properties["firstname"] = name_parts.first.titleize
-          properties["lastname"] = name_parts.last.titleize if name_parts.length > 1
-        else
-          properties["firstname"] = username.titleize
-        end
-      end
-
-      create(properties)
-    end
-
     private
 
     def save_to_local_database(hubspot_data)
