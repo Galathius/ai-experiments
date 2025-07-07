@@ -80,7 +80,7 @@
           <% @current_chat.messages.ordered.each do |message| %>
             <div class="mb-3 <%= 'flex justify-end' if message.role == 'user' %>">
               <div class="<%= message.role == 'user' ? 'bg-gray-200' : 'bg-gray-100' %> rounded-xl p-3 max-w-[80%]">
-                <p class="text-gray-900 text-sm m-0 leading-snug"><%= simple_format(message.content) %></p>
+                <p class="text-gray-900 text-sm m-0 leading-snug"><%= message.content.html_safe %></p>
               </div>
             </div>
           <% end %>

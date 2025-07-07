@@ -1,0 +1,7 @@
+<% if defined?(message) && message.present? %>
+  <div class="mb-4 p-4 rounded-lg <%= defined?(error) && error ? 'bg-red-50 border border-red-200' : 'bg-blue-50 border border-blue-200' %>">
+    <div class="text-sm <%= defined?(error) && error ? 'text-red-700' : 'text-blue-700' %>">
+      <%= message %>
+    </div>
+  </div>
+<% end %>

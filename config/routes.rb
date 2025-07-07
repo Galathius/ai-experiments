@@ -26,6 +26,7 @@ Rails.application.routes.draw do
   # Dashboard and chat interface routes
   get "/chat_interface" => "chats#interface"
   post "/pull_data" => "dashboard#pull_data"
+  get "/dashboard_update" => "dashboard#dashboard_update"
   
   # Defines the root path route ("/")
   root "dashboard#index"

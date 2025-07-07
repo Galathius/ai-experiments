@@ -6,6 +6,7 @@ export default class extends Controller {
 
   connect() {
     console.log('Chat modal controller connected')
+    
     this.bindEvents()
     this.showChatTab()
     if (this.hasMessageInputTarget) this.messageInputTarget.focus()
@@ -190,7 +191,7 @@ export default class extends Controller {
       messageDiv.className = 'mb-3 flex justify-end'
       messageDiv.innerHTML = `
         <div class="bg-gray-200 max-w-[80%] rounded-xl p-3">
-          <p class="text-gray-900 text-sm m-0 leading-snug">${content}</p>
+          ${this.renderMarkdown(content)}
         </div>
       `
     } else {
@@ -221,7 +222,29 @@ export default class extends Controller {
       return this.processOldCalendarFormat(content)
     }
     
-    return `<p class="text-gray-900 text-sm m-0 leading-snug">${content}</p>`
+    return this.renderMarkdown(content)
+  }
+
+  renderMarkdown(content) {
+    // Simple markdown-like formatting
+    let html = content
+    
+    // Convert **bold** to <strong>
+    html = html.replace(/\*\*(.*?)\*\*/g, '<strong class="font-semibold">$1</strong>')
+    
+    // Convert *italic* to <em>
+    html = html.replace(/(?<!\*)\*([^*]+)\*(?!\*)/g, '<em class="italic">$1</em>')
+    
+    // Handle different types of line breaks
+    html = html.replace(/\r\n/g, '<br>')  // Windows line endings
+    html = html.replace(/\r/g, '<br>')    // Mac line endings  
+    html = html.replace(/\n/g, '<br>')    // Unix line endings
+    
+    // Handle multiple consecutive line breaks as paragraph breaks
+    html = html.replace(/(<br>\s*){2,}/g, '</p><p class="text-gray-900 text-sm m-0 leading-snug mt-4">')
+    
+    // Wrap in paragraph with our styling
+    return `<p class="text-gray-900 text-sm m-0 leading-snug">${html}</p>`
   }
 
   processNewCalendarFormat(content, match) {
@@ -330,11 +353,13 @@ export default class extends Controller {
   buildResult(beforeEvents, eventsHtml, afterEvents) {
     let result = ''
     if (beforeEvents.trim()) {
-      result += `<p class="text-gray-900 text-sm m-0 leading-snug mb-3">${beforeEvents.trim()}</p>`
+      const beforeHtml = this.renderMarkdown(beforeEvents.trim())
+      // Add margin bottom to the last paragraph before events
+      result += beforeHtml.replace(/<p class="([^"]*)"/, '<p class="$1 mb-3"')
     }
     result += eventsHtml
     if (afterEvents.trim()) {
-      result += `<p class="text-gray-900 text-sm m-0 leading-snug">${afterEvents.trim()}</p>`
+      result += this.renderMarkdown(afterEvents.trim())
     }
     return result
   }
@@ -350,11 +375,8 @@ export default class extends Controller {
       if (content && content.trim()) {
         const processedContent = this.processCalendarEvents(content.trim())
         
-        // Only update if content changed (contains calendar events)
-        const defaultContent = `<p class="text-gray-900 text-sm m-0 leading-snug">${content.trim()}</p>`
-        if (processedContent !== defaultContent) {
-          messageContainer.innerHTML = processedContent
-        }
+        // Always update with processed markdown content
+        messageContainer.innerHTML = processedContent
       }
     })
   }

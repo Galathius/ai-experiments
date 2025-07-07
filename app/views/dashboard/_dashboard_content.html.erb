@@ -1,0 +1,302 @@
+<!-- Google Account Section -->
+<div class="bg-white rounded-lg shadow">
+  <div class="p-6 border-b border-gray-200">
+    <div class="flex items-center justify-between">
+      <div class="flex items-center gap-3">
+        <%= inline_svg "icons/google.svg", class: "w-8 h-8" %>
+        <div>
+          <h3 class="text-lg font-semibold text-gray-900">Google Account</h3>
+          <p class="text-sm text-gray-600">Gmail & Calendar integration</p>
+        </div>
+      </div>
+      <div class="flex items-center gap-4">
+        <% if @google_connected %>
+          <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-green-100 text-green-800">
+            Connected
+          </span>
+          <%= button_to disconnect_google_path, method: :delete, class: "text-red-600 hover:text-red-700 text-sm font-medium cursor-pointer" do %>
+            Disconnect
+          <% end %>
+        <% else %>
+          <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-red-100 text-red-800">
+            Not Connected
+          </span>
+          <%= link_to "/auth/google_oauth2", class: "bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-lg text-sm font-medium transition-colors cursor-pointer" do %>
+            Connect Google
+          <% end %>
+        <% end %>
+      </div>
+    </div>
+  </div>
+
+  <% if @google_connected %>
+    <div class="p-6">
+      <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+        <!-- Recent Emails -->
+        <div>
+          <div class="mb-4">
+            <h4 class="font-medium text-gray-900">Recent Emails (<%= @stats[:emails] %> total)</h4>
+          </div>
+          <div class="space-y-2">
+            <% if @recent_emails.any? %>
+              <% @recent_emails.each do |email| %>
+                <div class="text-sm p-3 bg-gray-50 rounded">
+                  <div class="font-medium text-gray-900 truncate"><%= email.subject %></div>
+                  <div class="text-gray-600 text-xs">From: <%= email.from_email %></div>
+                  <div class="text-gray-500 text-xs"><%= time_ago_in_words(email.received_at) %> ago</div>
+                </div>
+              <% end %>
+            <% else %>
+              <div class="text-gray-500 text-sm italic">No emails imported yet</div>
+            <% end %>
+          </div>
+        </div>
+
+        <!-- Closest Calendar Events -->
+        <div>
+          <div class="mb-4">
+            <h4 class="font-medium text-gray-900">Closest Events (<%= @stats[:calendar_events] %> total)</h4>
+          </div>
+          <div class="space-y-2">
+            <% if @closest_events.any? %>
+              <% @closest_events.each do |event| %>
+                <% 
+                  now = Time.current
+                  is_past = event.end_time < now
+                  is_current = event.start_time <= now && event.end_time >= now
+                  is_future = event.start_time > now
+                  
+                  status_color = if is_current
+                    "text-green-600"
+                  elsif is_past
+                    "text-gray-500"
+                  else
+                    "text-blue-600"
+                  end
+                  
+                  status_text = if is_current
+                    "🟢 Happening now"
+                  elsif is_past
+                    "⏱️ #{time_ago_in_words(event.end_time)} ago"
+                  else
+                    "📅 In #{time_ago_in_words(event.start_time)}"
+                  end
+                %>
+                <div class="text-sm p-3 bg-gray-50 rounded">
+                  <div class="font-medium text-gray-900 truncate"><%= event.title %></div>
+                  <div class="text-gray-600 text-xs">
+                    <%= event.start_time.strftime("%b %d, %Y at %I:%M %p") %>
+                  </div>
+                  <div class="text-xs <%= status_color %> mt-1">
+                    <%= status_text %>
+                  </div>
+                  <% if event.location.present? %>
+                    <div class="text-gray-500 text-xs">📍 <%= event.location %></div>
+                  <% end %>
+                </div>
+              <% end %>
+            <% else %>
+              <div class="text-gray-500 text-sm italic">No calendar events imported yet</div>
+            <% end %>
+          </div>
+        </div>
+      </div>
+    </div>
+  <% end %>
+</div>
+
+<!-- HubSpot Section -->
+<div class="bg-white rounded-lg shadow">
+  <div class="p-6 border-b border-gray-200">
+    <div class="flex items-center justify-between">
+      <div class="flex items-center gap-3">
+        <%= inline_svg "icons/users.svg", class: "w-8 h-8" %>
+        <div>
+          <h3 class="text-lg font-semibold text-gray-900">HubSpot CRM</h3>
+          <p class="text-sm text-gray-600">Customer relationship management</p>
+        </div>
+      </div>
+      <div class="flex items-center gap-4">
+        <% if @hubspot_connected %>
+          <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-green-100 text-green-800">
+            Connected
+          </span>
+          <%= button_to disconnect_hubspot_path, method: :delete, class: "text-red-600 hover:text-red-700 text-sm font-medium cursor-pointer" do %>
+            Disconnect
+          <% end %>
+        <% else %>
+          <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-red-100 text-red-800">
+            Not Connected
+          </span>
+          <%= button_to "/auth/hubspot", method: :post, data: {turbo: false}, class: "bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-lg text-sm font-medium transition-colors cursor-pointer" do %>
+            Connect HubSpot
+          <% end %>
+        <% end %>
+      </div>
+    </div>
+  </div>
+
+  <% if @hubspot_connected %>
+    <div class="p-6">
+      <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+        <!-- Recent Contacts -->
+        <div>
+          <div class="mb-4">
+            <h4 class="font-medium text-gray-900">Recent Contacts (<%= @stats[:hubspot_contacts] %> total)</h4>
+          </div>
+          <div class="space-y-2">
+            <% if @recent_contacts.any? %>
+              <% @recent_contacts.each do |contact| %>
+                <div class="text-sm p-3 bg-gray-50 rounded">
+                  <div class="font-medium text-gray-900">
+                    <%= [contact.first_name, contact.last_name].compact.join(' ') %>
+                  </div>
+                  <% if contact.email.present? %>
+                    <div class="text-gray-600 text-xs">📧 <%= contact.email %></div>
+                  <% end %>
+                  <% if contact.company.present? %>
+                    <div class="text-gray-500 text-xs">🏢 <%= contact.company %></div>
+                  <% end %>
+                </div>
+              <% end %>
+            <% else %>
+              <div class="text-gray-500 text-sm italic">No contacts imported yet</div>
+            <% end %>
+          </div>
+        </div>
+
+        <!-- Recent Notes -->
+        <div>
+          <div class="mb-4">
+            <h4 class="font-medium text-gray-900">Recent Notes (<%= @stats[:hubspot_notes] %> total)</h4>
+          </div>
+          <div class="space-y-2">
+            <% if @recent_notes.any? %>
+              <% @recent_notes.each do |note| %>
+                <div class="text-sm p-3 bg-gray-50 rounded">
+                  <div class="font-medium text-gray-900 mb-1">
+                    <% if note.hubspot_contact %>
+                      📝 Note about <%= note.hubspot_contact.first_name %> <%= note.hubspot_contact.last_name %>
+                    <% else %>
+                      📝 CRM Note
+                    <% end %>
+                  </div>
+                  <div class="text-gray-700 text-xs mb-2">
+                    <%= truncate(strip_tags(note.content), length: 150) %>
+                  </div>
+                  <% if note.hubspot_contact&.company.present? %>
+                    <div class="text-gray-500 text-xs">
+                      🏢 <%= note.hubspot_contact.company %>
+                    </div>
+                  <% end %>
+                </div>
+              <% end %>
+            <% else %>
+              <div class="text-gray-500 text-sm italic">No notes imported yet</div>
+            <% end %>
+          </div>
+        </div>
+      </div>
+    </div>
+  <% end %>
+</div>
+
+<!-- Tasks Section -->
+<div class="bg-white rounded-lg shadow">
+  <div class="p-6 border-b border-gray-200">
+    <div class="flex items-center justify-between">
+      <div class="flex items-center gap-3">
+        <%= inline_svg "icons/check.svg", class: "w-8 h-8" %>
+        <div>
+          <h3 class="text-lg font-semibold text-gray-900">Tasks</h3>
+          <p class="text-sm text-gray-600">AI-created and user tasks</p>
+        </div>
+      </div>
+      <div class="text-sm text-gray-600">
+        <%= @stats[:pending_tasks] %> pending, <%= @stats[:tasks] %> total
+      </div>
+    </div>
+  </div>
+
+  <div class="p-6">
+    <div class="space-y-2">
+      <% if @pending_tasks.any? %>
+        <% @pending_tasks.each do |task| %>
+          <div class="flex items-center justify-between p-3 bg-gray-50 rounded">
+            <div class="flex-1">
+              <div class="font-medium text-gray-900"><%= task.title %></div>
+              <% if task.description.present? %>
+                <div class="text-sm text-gray-600"><%= task.description.truncate(100) %></div>
+              <% end %>
+              <div class="text-xs text-gray-500 mt-1">
+                Priority: <%= task.priority.capitalize %>
+                <% if task.due_date %>
+                  • Due: <%= task.due_date.strftime("%b %d, %Y") %>
+                <% end %>
+              </div>
+            </div>
+            <div class="flex items-center gap-2">
+              <span class="inline-flex items-center px-2 py-1 rounded-full text-xs font-medium bg-yellow-100 text-yellow-800">
+                <%= task.status.humanize %>
+              </span>
+            </div>
+          </div>
+        <% end %>
+      <% else %>
+        <div class="text-gray-500 text-sm italic text-center py-8">
+          No pending tasks. Create some tasks by chatting with the AI!
+        </div>
+      <% end %>
+    </div>
+  </div>
+</div>
+
+<!-- Activity Logs Section -->
+<div class="bg-white rounded-lg shadow">
+  <div class="p-6 border-b border-gray-200">
+    <div class="flex items-center gap-3">
+      <%= inline_svg "icons/clipboard.svg", class: "w-8 h-8" %>
+      <div>
+        <h3 class="text-lg font-semibold text-gray-900">AI Activity Logs</h3>
+        <p class="text-sm text-gray-600">Recent tool executions and actions</p>
+      </div>
+    </div>
+  </div>
+
+  <div class="divide-y divide-gray-200">
+    <% if @recent_action_logs.any? %>
+      <% @recent_action_logs.each do |log| %>
+        <div class="px-6 py-4">
+          <div class="flex items-center justify-between">
+            <div class="flex-1">
+              <div class="flex items-center gap-2">
+                <span class="text-sm font-medium text-gray-900"><%= log.tool_name %></span>
+                <% if log.result&.dig("success") %>
+                  <span class="inline-flex items-center px-2 py-1 rounded-full text-xs font-medium bg-green-100 text-green-800">
+                    Success
+                  </span>
+                <% else %>
+                  <span class="inline-flex items-center px-2 py-1 rounded-full text-xs font-medium bg-red-100 text-red-800">
+                    Failed
+                  </span>
+                <% end %>
+              </div>
+              <div class="text-xs text-gray-600 mt-1">
+                <%= time_ago_in_words(log.created_at) %> ago
+              </div>
+              <% if log.result&.dig("message") %>
+                <div class="text-xs text-gray-500 mt-1">
+                  <%= log.result["message"].truncate(100) %>
+                </div>
+              <% end %>
+            </div>
+          </div>
+        </div>
+      <% end %>
+    <% else %>
+      <div class="px-6 py-8 text-center text-gray-500 text-sm italic">
+        No AI activity yet. Start chatting to see tool executions here!
+      </div>
+    <% end %>
+  </div>
+</div>
