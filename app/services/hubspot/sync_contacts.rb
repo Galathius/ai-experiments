@@ -98,6 +98,12 @@ module Hubspot
         return false
       end
 
+      # Trigger proactive analysis only for incremental syncs (not initial)
+      if @user.hubspot_contacts_initial_sync_complete?
+        ProactiveContactAnalysisJob.perform_later(@user.id, contact.id)
+        Rails.logger.debug "Triggered proactive analysis for new contact: #{contact.full_name}"
+      end
+
       Rails.logger.debug "Imported HubSpot contact: #{contact_id} (#{contact.full_name})"
       true
     rescue => e

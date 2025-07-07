@@ -10,6 +10,8 @@ class ImportHubspotNotesJob < ApplicationJob
       result = sync_service.sync_all
       
       if result[:success]
+        # Mark initial sync as complete
+        user.update!(hubspot_notes_initial_sync_complete: true)
         Rails.logger.info "Imported #{result[:imported]} HubSpot notes for user #{user.id}"
       else
         Rails.logger.error "HubSpot notes import failed for user #{user.id}: #{result[:error]}"

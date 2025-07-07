@@ -70,9 +70,6 @@ class DashboardController < ApplicationController
       end
 
       if jobs_started.any?
-        # Schedule proactive task checking after imports complete
-        CheckTriggeredTasksJob.set(wait: 30.seconds).perform_later(Current.user.id, before_counts)
-
         respond_to do |format|
           format.html { redirect_to root_path, notice: "Data sync started for: #{jobs_started.join(', ')}. This may take a few minutes." }
           format.json { render json: { status: "success", message: "Syncing: #{jobs_started.join(', ')}" } }

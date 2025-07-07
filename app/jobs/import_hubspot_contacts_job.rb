@@ -10,6 +10,8 @@ class ImportHubspotContactsJob < ApplicationJob
       result = sync_service.sync_all
       
       if result[:success]
+        # Mark initial sync as complete
+        user.update!(hubspot_contacts_initial_sync_complete: true)
         Rails.logger.info "Imported #{result[:imported]} HubSpot contacts for user #{user.id}"
       else
         Rails.logger.error "HubSpot contacts import failed for user #{user.id}: #{result[:error]}"

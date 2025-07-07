@@ -27,7 +27,8 @@ class Calendar < ApplicationRecord
     update!(
       sync_status: "completed",
       last_sync_at: Time.current,
-      last_sync_token: sync_token
+      last_sync_token: sync_token,
+      initial_sync_complete: true
     )
   end
 
@@ -39,10 +40,10 @@ class Calendar < ApplicationRecord
   end
 
   def incremental_sync?
-    next_page_token.present? || last_sync_token.present?
+    initial_sync_complete? && (next_page_token.present? || last_sync_token.present?)
   end
 
   def initial_sync?
-    !incremental_sync?
+    !initial_sync_complete?
   end
 end

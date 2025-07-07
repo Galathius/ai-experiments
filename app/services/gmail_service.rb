@@ -102,6 +102,7 @@ class GmailService
 
   def import_email_batch(messages)
     emails_imported = 0
+    mailbox = @user.get_or_create_mailbox
 
     messages.each do |message|
       begin
@@ -119,6 +120,12 @@ class GmailService
 
         # Generate and store embedding
         EmbeddingService.generate_embedding_for_email(email)
+
+        # Trigger proactive analysis only for incremental syncs (not initial)
+        if !mailbox.initial_sync?
+          ProactiveEmailAnalysisJob.perform_later(@user.id, email.id)
+          Rails.logger.debug "Triggered proactive analysis for new email: #{email.subject}"
+        end
 
         emails_imported += 1
         Rails.logger.debug "Imported email: #{email.subject} (#{email.gmail_id})"

@@ -25,7 +25,8 @@ class Mailbox < ApplicationRecord
   def complete_sync!
     update!(
       sync_status: "completed",
-      last_sync_at: Time.current
+      last_sync_at: Time.current,
+      initial_sync_complete: true
     )
   end
 
@@ -37,10 +38,10 @@ class Mailbox < ApplicationRecord
   end
 
   def incremental_sync?
-    next_page_token.present?
+    initial_sync_complete? && next_page_token.present?
   end
 
   def initial_sync?
-    !incremental_sync?
+    !initial_sync_complete?
   end
 end

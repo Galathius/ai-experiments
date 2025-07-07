@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema[8.0].define(version: 2025_07_07_180033) do
+ActiveRecord::Schema[8.0].define(version: 2025_07_07_212221) do
   # These are extensions that must be enabled in order to support this database
   enable_extension "pg_catalog.plpgsql"
   enable_extension "vector"
@@ -55,6 +55,7 @@ ActiveRecord::Schema[8.0].define(version: 2025_07_07_180033) do
     t.string "last_sync_token"
     t.datetime "created_at", null: false
     t.datetime "updated_at", null: false
+    t.boolean "initial_sync_complete", default: false
     t.index ["user_id"], name: "index_calendars_on_user_id", unique: true
   end
 
@@ -132,6 +133,7 @@ ActiveRecord::Schema[8.0].define(version: 2025_07_07_180033) do
     t.text "last_error"
     t.datetime "created_at", null: false
     t.datetime "updated_at", null: false
+    t.boolean "initial_sync_complete", default: false
     t.index ["user_id"], name: "index_mailboxes_on_user_id", unique: true
   end
 
@@ -205,6 +207,8 @@ ActiveRecord::Schema[8.0].define(version: 2025_07_07_180033) do
     t.datetime "updated_at", null: false
     t.string "first_name", default: "", null: false
     t.string "last_name", default: "", null: false
+    t.boolean "hubspot_contacts_initial_sync_complete", default: false
+    t.boolean "hubspot_notes_initial_sync_complete", default: false
     t.index ["email_address"], name: "index_users_on_email_address", unique: true
   end
 

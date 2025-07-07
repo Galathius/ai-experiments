@@ -114,6 +114,12 @@ module Hubspot
         return false
       end
 
+      # Trigger proactive analysis only for incremental syncs (not initial)
+      if @user.hubspot_notes_initial_sync_complete?
+        ProactiveNoteAnalysisJob.perform_later(@user.id, note.id)
+        Rails.logger.debug "Triggered proactive analysis for new note: #{content&.truncate(50)}"
+      end
+
       Rails.logger.debug "Imported HubSpot note: #{note_id}"
       true
     rescue => e

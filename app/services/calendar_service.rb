@@ -180,6 +180,7 @@ class CalendarService
   def import_event_batch(events)
     events_imported = 0
     existing_ids = @user.calendar_events.pluck(:google_event_id).to_set
+    calendar = @user.get_or_create_calendar
 
     events.each do |event|
       begin
@@ -200,6 +201,12 @@ class CalendarService
 
         # Generate and store embedding
         EmbeddingService.generate_embedding_for_calendar_event(calendar_event)
+
+        # Trigger proactive analysis only for incremental syncs (not initial)
+        if !calendar.initial_sync?
+          ProactiveEventAnalysisJob.perform_later(@user.id, calendar_event.id)
+          Rails.logger.debug "Triggered proactive analysis for new event: #{calendar_event.title}"
+        end
 
         events_imported += 1
         Rails.logger.debug "Imported event: #{calendar_event.title} (#{calendar_event.google_event_id})"
