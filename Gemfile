@@ -25,7 +25,7 @@ gem "omniauth"
 gem "omniauth-rails_csrf_protection"
 gem "omniauth-google-oauth2"
 gem "omniauth-hubspot-full", github: "romanos/omniauth-hubspot"
-gem "hubspot-api-client"
+gem "faraday"
 gem "google-api-client", require: %w[googleauth google/apis/gmail_v1 google/apis/calendar_v3]
 gem "neighbor"
 gem "ruby-openai"

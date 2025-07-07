@@ -13,8 +13,8 @@ module Hubspot
       begin
         refresh_token_if_needed
         yield
-      rescue => e
-        if api_error?(e) && token_expired?(e)
+      rescue HubspotApiError => e
+        if token_expired?(e)
           Rails.logger.info "HubSpot token expired, attempting refresh for user #{@user.id}"
           if refresh_access_token
             @client = build_client
@@ -32,7 +32,7 @@ module Hubspot
 
     def build_client
       return nil unless hubspot_identity&.access_token
-      Hubspot::Client.new(access_token: hubspot_identity.access_token)
+      HubspotClient.new(hubspot_identity.access_token)
     end
 
     def hubspot_identity
@@ -49,15 +49,9 @@ module Hubspot
       @client.present?
     end
 
-    def api_error?(error)
-      error.class.name.include?('ApiError')
-    end
-
     def token_expired?(error)
-      return false unless api_error?(error)
-      
-      error.code == 401 || 
-      (error.respond_to?(:response_body) && error.response_body&.include?("expired"))
+      error.is_a?(HubspotApiError) && 
+      (error.code == 401 || error.response_body&.include?("expired"))
     end
 
     def token_needs_refresh?

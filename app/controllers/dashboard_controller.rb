@@ -24,7 +24,13 @@ class DashboardController < ApplicationController
   end
 
   def pull_data
-    # Trigger sync for all connected services
+    # Get selected sync options from checkboxes
+    sync_emails = params[:sync_emails] == "1"
+    sync_calendar = params[:sync_calendar] == "1"
+    sync_contacts = params[:sync_contacts] == "1"
+    sync_notes = params[:sync_notes] == "1"
+
+    # Check if any options are selected and user has connected accounts
     if Current.user.google_identity || Current.user.hubspot_identity
       # Track what existed before sync
       before_counts = {
@@ -34,32 +40,59 @@ class DashboardController < ApplicationController
         hubspot_notes: Current.user.hubspot_notes.count
       }
 
-      # Start background import jobs
+      # Start background import jobs based on selections
       jobs_started = []
 
       if Current.user.google_identity
-        ImportEmailsJob.perform_later(Current.user.id)
-        ImportCalendarEventsJob.perform_later(Current.user.id)
-        jobs_started << "Google emails & calendar"
+        google_jobs = []
+        if sync_emails
+          ImportEmailsJob.perform_later(Current.user.id)
+          google_jobs << "emails"
+        end
+        if sync_calendar
+          ImportCalendarEventsJob.perform_later(Current.user.id)
+          google_jobs << "calendar"
+        end
+        jobs_started << "Google #{google_jobs.join(' & ')}" if google_jobs.any?
       end
 
       if Current.user.hubspot_identity
-        ImportHubspotContactsJob.perform_later(Current.user.id) if defined?(ImportHubspotContactsJob)
-        ImportHubspotNotesJob.perform_later(Current.user.id) if defined?(ImportHubspotNotesJob)
-        jobs_started << "HubSpot contacts & notes"
+        hubspot_jobs = []
+        if sync_contacts && defined?(ImportHubspotContactsJob)
+          ImportHubspotContactsJob.perform_later(Current.user.id)
+          hubspot_jobs << "contacts"
+        end
+        if sync_notes && defined?(ImportHubspotNotesJob)
+          ImportHubspotNotesJob.perform_later(Current.user.id)
+          hubspot_jobs << "notes"
+        end
+        jobs_started << "HubSpot #{hubspot_jobs.join(' & ')}" if hubspot_jobs.any?
       end
 
-      # Schedule proactive task checking after imports complete
-      CheckTriggeredTasksJob.set(wait: 30.seconds).perform_later(Current.user.id, before_counts)
+      if jobs_started.any?
+        # Schedule proactive task checking after imports complete
+        CheckTriggeredTasksJob.set(wait: 30.seconds).perform_later(Current.user.id, before_counts)
 
-      respond_to do |format|
-        format.html { redirect_to root_path, notice: "Data sync started for: #{jobs_started.join(', ')}. This may take a few minutes." }
-        format.json { render json: { status: "success", message: "Syncing: #{jobs_started.join(', ')}" } }
-        format.turbo_stream do
-          render turbo_stream: turbo_stream.update("sync-status",
-            partial: "dashboard/sync_status",
-            locals: { message: "Syncing: #{jobs_started.join(', ')}..." }
-          )
+        respond_to do |format|
+          format.html { redirect_to root_path, notice: "Data sync started for: #{jobs_started.join(', ')}. This may take a few minutes." }
+          format.json { render json: { status: "success", message: "Syncing: #{jobs_started.join(', ')}" } }
+          format.turbo_stream do
+            render turbo_stream: turbo_stream.update("sync-status",
+              partial: "dashboard/sync_status",
+              locals: { message: "Syncing: #{jobs_started.join(', ')}..." }
+            )
+          end
+        end
+      else
+        respond_to do |format|
+          format.html { redirect_to root_path, alert: "Please select at least one data type to sync." }
+          format.json { render json: { status: "error", message: "No data types selected" } }
+          format.turbo_stream do
+            render turbo_stream: turbo_stream.update("sync-status",
+              partial: "dashboard/sync_status",
+              locals: { message: "Please select at least one data type to sync.", error: true }
+            )
+          end
         end
       end
     else

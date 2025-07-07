@@ -60,19 +60,16 @@ module Hubspot
     private
 
     def fetch_notes(limit:, after: nil)
-      opts = {
-        limit: limit,
-        properties: ["hs_note_body", "hs_timestamp", "hs_createdate", "hs_lastmodifieddate"],
-        associations: ["contacts"]
-      }
-      opts[:after] = after if after
-
-      response = @client.crm.objects.notes.basic_api.get_page(opts)
-
-      {
-        "results" => response.results.map(&:to_hash),
-        "paging" => response.paging&.to_hash
-      }
+      properties = ["hs_note_body", "hs_timestamp", "hs_createdate", "hs_lastmodifieddate"]
+      associations = ["contacts"]
+      
+      response = @client.get_notes(
+        limit: limit, 
+        after: after, 
+        properties: properties, 
+        associations: associations
+      )
+      response
     rescue => e
       handle_api_error(e, "fetching notes")
     end
@@ -136,17 +133,27 @@ module Hubspot
     end
 
     def parse_hubspot_date(timestamp_string)
-      return nil unless timestamp_string.present?
+      return Time.current unless timestamp_string.present?
       
-      # HubSpot timestamps are often in milliseconds
-      if timestamp_string.to_i > 1_000_000_000_000
-        Time.at(timestamp_string.to_i / 1000)
+      timestamp_int = timestamp_string.to_i
+      
+      # Skip invalid timestamps (0 or very small numbers)
+      return Time.current if timestamp_int <= 0
+      
+      # HubSpot timestamps are typically in milliseconds since epoch
+      # Check if it looks like milliseconds (13+ digits) vs seconds (10 digits)
+      if timestamp_int > 1_000_000_000_000  # 13+ digits = milliseconds
+        Time.at(timestamp_int / 1000.0)
+      elsif timestamp_int > 1_000_000_000   # 10+ digits = seconds  
+        Time.at(timestamp_int)
       else
-        Time.at(timestamp_string.to_i)
+        # For anything else, use current time as fallback
+        Rails.logger.warn "Unusual HubSpot timestamp format: #{timestamp_string}, using current time"
+        Time.current
       end
     rescue => e
       Rails.logger.error "Failed to parse HubSpot date #{timestamp_string}: #{e.message}"
-      nil
+      Time.current
     end
 
     def generate_embeddings_for_new_notes

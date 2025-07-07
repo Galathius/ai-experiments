@@ -60,15 +60,8 @@ module Hubspot
     private
 
     def fetch_contacts(limit:, after: nil)
-      opts = { limit: limit }
-      opts[:after] = after if after
-
-      response = @client.crm.contacts.basic_api.get_page(opts)
-
-      {
-        "results" => response.results.map(&:to_hash),
-        "paging" => response.paging&.to_hash
-      }
+      response = @client.get_contacts(limit: limit, after: after)
+      response
     rescue => e
       handle_api_error(e, "fetching contacts")
     end

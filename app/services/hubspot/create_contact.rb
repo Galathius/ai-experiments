@@ -2,11 +2,10 @@ module Hubspot
   class CreateContact < Base
     def create(properties)
       with_token_refresh do
-        contact_input = ::Hubspot::Crm::Contacts::SimplePublicObjectInput.new(properties: properties)
-        response = @client.crm.contacts.basic_api.create(contact_input)
+        response = @client.create_contact(properties)
         
         # Also save to local database
-        local_contact = save_to_local_database(response.to_hash)
+        local_contact = save_to_local_database(response)
         
         # Generate embedding for the new contact
         if local_contact
@@ -15,7 +14,7 @@ module Hubspot
 
         {
           success: true,
-          hubspot_data: response.to_hash,
+          hubspot_data: response,
           local_contact: local_contact
         }
       end

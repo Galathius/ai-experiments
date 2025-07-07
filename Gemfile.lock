@@ -116,8 +116,6 @@ GEM
     erubi (1.13.1)
     et-orbi (1.2.11)
       tzinfo
-    ethon (0.16.0)
-      ffi (>= 1.15.0)
     event_stream_parser (1.0.0)
     faraday (2.13.2)
       faraday-net_http (>= 2.0, < 3.5)
@@ -127,14 +125,6 @@ GEM
       multipart-post (~> 2.0)
     faraday-net_http (3.4.1)
       net-http (>= 0.5.0)
-    ffi (1.17.2-aarch64-linux-gnu)
-    ffi (1.17.2-aarch64-linux-musl)
-    ffi (1.17.2-arm-linux-gnu)
-    ffi (1.17.2-arm-linux-musl)
-    ffi (1.17.2-arm64-darwin)
-    ffi (1.17.2-x86_64-darwin)
-    ffi (1.17.2-x86_64-linux-gnu)
-    ffi (1.17.2-x86_64-linux-musl)
     fugit (1.11.1)
       et-orbi (~> 1, >= 1.2.11)
       raabro (~> 1.4)
@@ -175,9 +165,6 @@ GEM
     hashie (5.0.0)
     httpclient (2.9.0)
       mutex_m
-    hubspot-api-client (20.0.0)
-      json (~> 2.1, >= 2.1.0)
-      typhoeus (~> 1.4.0)
     i18n (1.14.7)
       concurrent-ruby (~> 1.0)
     importmap-rails (2.1.0)
@@ -439,8 +426,6 @@ GEM
     turbo-rails (2.0.16)
       actionpack (>= 7.1.0)
       railties (>= 7.1.0)
-    typhoeus (1.4.1)
-      ethon (>= 0.9.0)
     tzinfo (2.0.6)
       concurrent-ruby (~> 1.0)
     uber (0.1.0)
@@ -483,8 +468,8 @@ DEPENDENCIES
   capybara
   debug
   dockerfile-rails (>= 1.7)
+  faraday
   google-api-client
-  hubspot-api-client
   importmap-rails
   inline_svg
   jbuilder
