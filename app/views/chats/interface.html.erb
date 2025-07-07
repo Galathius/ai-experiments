@@ -1,9 +1,16 @@
 <!-- Chat Modal matching README mockup -->
-<div class="w-full h-full flex flex-col bg-white">
+<div 
+  class="w-full h-full flex flex-col bg-white"
+  data-controller="chat-modal"
+>
   <!-- Header -->
   <div class="flex items-center justify-between px-6 py-5 pb-4 border-b border-gray-200">
     <h1 class="text-2xl font-semibold text-gray-900 m-0">Ask Anything</h1>
-    <button id="close-chat-btn" class="text-gray-400 hover:text-gray-600 cursor-pointer bg-transparent border-none p-1">
+    <button 
+      data-chat-modal-target="closeBtn"
+      data-action="click->chat-modal#closeModal"
+      class="text-gray-400 hover:text-gray-600 cursor-pointer bg-transparent border-none p-1"
+    >
       <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path>
       </svg>
@@ -14,20 +21,23 @@
   <div class="flex items-center justify-between px-6 border-b border-gray-200">
     <div class="flex">
       <button 
-        id="chat-tab" 
+        data-chat-modal-target="chatTab"
+        data-action="click->chat-modal#showChatTab"
         class="tab-button active-tab py-4 mr-8 border-none bg-transparent text-base font-medium cursor-pointer border-b-2 border-gray-900 text-gray-900"
       >
         Chat
       </button>
       <button 
-        id="history-tab" 
+        data-chat-modal-target="historyTab"
+        data-action="click->chat-modal#showHistoryTab"
         class="tab-button py-4 border-none bg-transparent text-base font-normal cursor-pointer border-b-2 border-transparent text-gray-500"
       >
         History
       </button>
     </div>
     <button 
-      id="new-thread-btn"
+      data-chat-modal-target="newThreadBtn"
+      data-action="click->chat-modal#newThread"
       class="flex items-center gap-2 px-4 py-2 bg-transparent border-none text-base font-normal text-gray-500 cursor-pointer hover:text-gray-700"
     >
       <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -41,7 +51,10 @@
   <div class="flex-1 relative min-h-0">
     
     <!-- Chat Tab Content -->
-    <div id="chat-content" class="tab-content absolute inset-0 flex flex-col">
+    <div 
+      data-chat-modal-target="chatContent"
+      class="tab-content absolute inset-0 flex flex-col"
+    >
       <!-- Context Bar -->
       <div id="context-bar" class="px-4 py-2 bg-gray-50 border-b border-gray-200 text-center flex-shrink-0">
         <div class="text-sm text-gray-500 mb-0.5">
@@ -51,7 +64,10 @@
       </div>
       
       <!-- Messages Area -->
-      <div class="messages-container flex-1 overflow-y-scroll p-4 min-h-0">
+      <div 
+        data-chat-modal-target="messagesContainer"
+        class="messages-container flex-1 overflow-y-scroll p-4 min-h-0"
+      >
         <!-- Initial AI Message -->
         <div class="mb-3">
           <div class="bg-gray-100 rounded-xl p-3 max-w-[80%]">
@@ -73,10 +89,14 @@
       
       <!-- Input Area -->
       <div class="flex-shrink-0 p-4 border-t border-gray-200 bg-white">
-        <form id="chat-form">
+        <form 
+          data-chat-modal-target="chatForm"
+          data-action="submit->chat-modal#sendMessage"
+        >
           <div class="relative border border-gray-300 rounded-xl p-3">
             <textarea 
-              id="message-input" 
+              data-chat-modal-target="messageInput"
+              data-action="keydown->chat-modal#handleKeydown"
               name="content"
               placeholder="Ask anything about your meetings..."
               class="w-full border-none outline-none resize-none text-sm leading-snug bg-transparent"
@@ -88,7 +108,8 @@
               <!-- Send button -->
               <button 
                 type="button" 
-                id="send-btn" 
+                data-chat-modal-target="sendBtn"
+                data-action="click->chat-modal#sendMessage"
                 class="bg-blue-600 hover:bg-blue-700 text-white border-none rounded-full w-7 h-7 flex items-center justify-center cursor-pointer"
               >
                 <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -102,7 +123,10 @@
     </div>
 
     <!-- History Tab Content -->
-    <div id="history-content" class="tab-content absolute inset-0 hidden flex-col bg-white">
+    <div 
+      data-chat-modal-target="historyContent"
+      class="tab-content absolute inset-0 hidden flex-col bg-white"
+    >
       <div class="flex-1 overflow-y-auto p-6">
         <h3 class="m-0 mb-5 text-lg text-gray-900">Chat History</h3>
         
