@@ -28,6 +28,9 @@ Rails.application.routes.draw do
   post "/pull_data" => "dashboard#pull_data"
   get "/dashboard_update" => "dashboard#dashboard_update"
   
+  # Admin routes
+  post "/admin/reset_all_data" => "admin#reset_all_data"
+  
   # Defines the root path route ("/")
   root "dashboard#index"
 end
