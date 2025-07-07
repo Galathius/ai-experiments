@@ -1,36 +1,15 @@
 Rails.application.routes.draw do
-  resources :tasks, only: [ :index, :show ]
-  resources :action_logs, only: [ :index ]
-  resources :chats, only: [ :index, :show, :destroy ] do
+  resources :chats, only: [ :show ] do
     resources :messages, only: [ :create ]
-    collection do
-      post :pull_data
-    end
   end
 
   # For creating messages without specifying a chat (creates new chat)
   resources :messages, only: [ :create ]
 
-  resources :emails, only: [ :index, :show ] do
-    collection do
-      post :import
-    end
-  end
-
-  resources :calendar_events, only: [ :index, :show ] do
-    collection do
-      post :import
-    end
-  end
-
-  get "/hubspot" => "hubspot#index"
   delete "/hubspot/disconnect" => "hubspot#disconnect", as: :disconnect_hubspot
   post "/hubspot/import_contacts" => "hubspot#import_contacts", as: :import_hubspot_contacts
   post "/hubspot/import_notes" => "hubspot#import_notes", as: :import_hubspot_notes
 
-  resources :hubspot_contacts, only: [ :index, :show ]
-
-  get "/google" => "google#index"
   delete "/google/disconnect" => "google#disconnect", as: :disconnect_google
   post "/google/import_emails" => "google#import_emails", as: :import_google_emails
   post "/google/import_calendar" => "google#import_calendar", as: :import_google_calendar
@@ -52,6 +31,7 @@ Rails.application.routes.draw do
 
   # Dashboard and chat interface routes
   get "/chat_interface" => "chats#interface"
+  post "/pull_data" => "dashboard#pull_data"
   
   # Defines the root path route ("/")
   root "dashboard#index"
