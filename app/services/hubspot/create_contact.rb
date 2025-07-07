@@ -1,9 +1,7 @@
 module Hubspot
   class CreateContact < Base
     def create(properties)
-      return { success: false, error: "No HubSpot connection" } unless client_available?
-
-      begin
+      with_token_refresh do
         contact_input = ::Hubspot::Crm::Contacts::SimplePublicObjectInput.new(properties: properties)
         response = @client.crm.contacts.basic_api.create(contact_input)
         
@@ -20,13 +18,10 @@ module Hubspot
           hubspot_data: response.to_hash,
           local_contact: local_contact
         }
-      rescue ::Hubspot::ApiError => e
-        handle_api_error(e, "creating contact")
-        { success: false, error: e.message }
-      rescue => e
-        Rails.logger.error "Failed to create HubSpot contact for user #{@user.id}: #{e.message}"
-        { success: false, error: e.message }
       end
+    rescue => e
+      Rails.logger.error "Failed to create HubSpot contact for user #{@user.id}: #{e.message}"
+      { success: false, error: e.message }
     end
 
     private

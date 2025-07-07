@@ -1,9 +1,7 @@
 module Hubspot
   class SyncNotes < Base
     def sync(limit: 100, after: nil)
-      return { success: false, error: "No HubSpot connection" } unless client_available?
-
-      begin
+      with_token_refresh do
         # Get notes from HubSpot
         notes_response = fetch_notes(limit: limit, after: after)
         return { success: false, error: "Failed to fetch notes" } unless notes_response
@@ -26,10 +24,10 @@ module Hubspot
           total_checked: notes_data.size,
           paging: notes_response["paging"]
         }
-      rescue => e
-        Rails.logger.error "HubSpot notes sync failed for user #{@user.id}: #{e.message}"
-        { success: false, error: e.message }
       end
+    rescue => e
+      Rails.logger.error "HubSpot notes sync failed for user #{@user.id}: #{e.message}"
+      { success: false, error: e.message }
     end
 
     def sync_all

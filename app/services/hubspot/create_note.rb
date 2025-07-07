@@ -1,9 +1,7 @@
 module Hubspot
   class CreateNote < Base
     def create(contact_id, note_content, additional_properties = {})
-      return { success: false, error: "No HubSpot connection" } unless client_available?
-
-      begin
+      with_token_refresh do
         # Create the note in HubSpot
         note_response = create_hubspot_note(note_content, additional_properties)
         return { success: false, error: "Failed to create note in HubSpot" } unless note_response
@@ -25,13 +23,10 @@ module Hubspot
           local_note: local_note,
           association_success: association_result
         }
-      rescue ::Hubspot::ApiError => e
-        handle_api_error(e, "creating note")
-        { success: false, error: e.message }
-      rescue => e
-        Rails.logger.error "Failed to create HubSpot note for user #{@user.id}: #{e.message}"
-        { success: false, error: e.message }
       end
+    rescue => e
+      Rails.logger.error "Failed to create HubSpot note for user #{@user.id}: #{e.message}"
+      { success: false, error: e.message }
     end
 
     private

@@ -1,9 +1,7 @@
 module Hubspot
   class SyncContacts < Base
     def sync(limit: 100, after: nil)
-      return { success: false, error: "No HubSpot connection" } unless client_available?
-
-      begin
+      with_token_refresh do
         # Get contacts from HubSpot
         contacts_response = fetch_contacts(limit: limit, after: after)
         return { success: false, error: "Failed to fetch contacts" } unless contacts_response
@@ -26,10 +24,10 @@ module Hubspot
           total_checked: contacts_data.size,
           paging: contacts_response["paging"]
         }
-      rescue => e
-        Rails.logger.error "HubSpot contacts sync failed for user #{@user.id}: #{e.message}"
-        { success: false, error: e.message }
       end
+    rescue => e
+      Rails.logger.error "HubSpot contacts sync failed for user #{@user.id}: #{e.message}"
+      { success: false, error: e.message }
     end
 
     def sync_all

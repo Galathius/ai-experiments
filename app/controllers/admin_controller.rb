@@ -41,6 +41,12 @@ class AdminController < ApplicationController
       deleted_counts[:emails] = Email.count
       Email.delete_all
 
+      deleted_counts[:calendars] = Calendar.count
+      Calendar.delete_all
+
+      deleted_counts[:mailboxes] = Mailbox.count
+      Mailbox.delete_all
+
       # Also delete sessions and oauth identities for complete reset
       deleted_counts[:sessions] = Session.count
       Session.delete_all
