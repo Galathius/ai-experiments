@@ -106,6 +106,7 @@ bin/rails console               # Open Rails console
 - **Modal System**: Chat interface loads dynamically via AJAX
 - **Calendar Events**: Processed with date-fns and rendered as formatted cards
 - **Tab Navigation**: Chat and History tabs with proper Stimulus actions
+- **SVG Icons**: Icons are stored in images/icons and used in views via inline_svg
 
 ### Database Schema
 - Multi-database setup for production (main, cache, queue, cable)
