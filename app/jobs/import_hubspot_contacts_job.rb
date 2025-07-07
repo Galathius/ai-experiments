@@ -3,59 +3,20 @@ class ImportHubspotContactsJob < ApplicationJob
 
   def perform(user_id)
     user = User.find(user_id)
-    hubspot_identity = user.hubspot_identity
+    return unless user.hubspot_identity
 
-    return unless hubspot_identity
-
-    hubspot_service = HubspotService.new(hubspot_identity.access_token, hubspot_identity)
-
-    after = nil
-    imported_count = 0
-
-    loop do
-      response = hubspot_service.get_contacts(limit: 100, after: after)
-      break unless response
-
-      contacts = response["results"] || []
-      break if contacts.empty?
-
-      contacts.each do |contact_data|
-        import_contact(user, contact_data, hubspot_service)
-        imported_count += 1
+    begin
+      sync_service = Hubspot::SyncContacts.new(user)
+      result = sync_service.sync_all
+      
+      if result[:success]
+        Rails.logger.info "Imported #{result[:imported]} HubSpot contacts for user #{user.id}"
+      else
+        Rails.logger.error "HubSpot contacts import failed for user #{user.id}: #{result[:error]}"
       end
-
-      # Check for next page
-      paging = response["paging"]
-      break unless paging && paging["next"]
-
-      after = paging["next"]["after"]
-    end
-
-    Rails.logger.info "Imported #{imported_count} HubSpot contacts for user #{user.id}"
-  end
-
-  private
-
-  def import_contact(user, contact_data, hubspot_service)
-    properties = contact_data["properties"] || {}
-
-    contact = user.hubspot_contacts.find_or_initialize_by(
-      hubspot_contact_id: contact_data["id"]
-    )
-
-    contact.assign_attributes(
-      first_name: properties["firstname"],
-      last_name: properties["lastname"],
-      email: properties["email"],
-      company: properties["company"],
-      phone: properties["phone"]
-    )
-
-    # Notes will be imported separately via ImportHubspotNotesJob
-
-    if contact.save
-      # Generate embedding
-      GenerateEmbeddingJob.perform_later(contact)
+    rescue => e
+      Rails.logger.error "HubSpot contacts import job failed for user #{user.id}: #{e.message}"
+      raise e
     end
   end
 end

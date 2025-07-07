@@ -84,7 +84,7 @@ class AutoSyncService
   def sync_emails
     begin
       service = GmailService.new(@user)
-      imported_count = service.import_emails(limit: 100)
+      imported_count = service.import_emails
 
       { success: true, imported: imported_count, total_checked: imported_count }
     rescue => e
@@ -96,7 +96,7 @@ class AutoSyncService
   def sync_calendar_events
     begin
       service = CalendarService.new(@user)
-      imported_count = service.import_events(limit: 100)
+      imported_count = service.import_events
 
       { success: true, imported: imported_count, total_checked: imported_count }
     rescue => e
@@ -107,30 +107,14 @@ class AutoSyncService
 
   def sync_hubspot_contacts
     begin
-      service = HubspotService.new(@user.hubspot_identity.access_token, @user.hubspot_identity)
-      contacts_data = service.get_contacts(limit: 100)
-      imported_count = 0
-
-      contacts_data.each do |contact_data|
-        # Import contact logic would go here
-        # For now, just count existing ones to avoid duplication errors
-        existing_contact = @user.hubspot_contacts.find_by(hubspot_contact_id: contact_data["id"])
-        unless existing_contact
-          # Create new contact record
-          @user.hubspot_contacts.create!(
-            hubspot_contact_id: contact_data["id"],
-            email: contact_data.dig("properties", "email"),
-            first_name: contact_data.dig("properties", "firstname"),
-            last_name: contact_data.dig("properties", "lastname"),
-            company: contact_data.dig("properties", "company"),
-            phone: contact_data.dig("properties", "phone"),
-            contact_data: contact_data
-          )
-          imported_count += 1
-        end
+      service = Hubspot::SyncContacts.new(@user)
+      result = service.sync(limit: 100)
+      
+      if result[:success]
+        { success: true, imported: result[:imported], total_checked: result[:total_checked] }
+      else
+        { success: false, error: result[:error] }
       end
-
-      { success: true, imported: imported_count, total_checked: contacts_data.size }
     rescue => e
       Rails.logger.error "HubSpot contacts sync failed for user #{@user.id}: #{e.message}"
       { success: false, error: e.message }
@@ -139,27 +123,14 @@ class AutoSyncService
 
   def sync_hubspot_notes
     begin
-      service = HubspotService.new(@user.hubspot_identity.access_token, @user.hubspot_identity)
-      notes_data = service.get_notes(limit: 100)
-      imported_count = 0
-
-      notes_data.each do |note_data|
-        # Import note logic would go here
-        # For now, just count existing ones to avoid duplication errors
-        existing_note = @user.hubspot_notes.find_by(hubspot_note_id: note_data["id"])
-        unless existing_note
-          # Create new note record
-          @user.hubspot_notes.create!(
-            hubspot_note_id: note_data["id"],
-            content: note_data.dig("properties", "hs_note_body"),
-            created_date: Time.parse(note_data.dig("properties", "hs_timestamp")),
-            note_data: note_data
-          )
-          imported_count += 1
-        end
+      service = Hubspot::SyncNotes.new(@user)
+      result = service.sync(limit: 100)
+      
+      if result[:success]
+        { success: true, imported: result[:imported], total_checked: result[:total_checked] }
+      else
+        { success: false, error: result[:error] }
       end
-
-      { success: true, imported: imported_count, total_checked: notes_data.size }
     rescue => e
       Rails.logger.error "HubSpot notes sync failed for user #{@user.id}: #{e.message}"
       { success: false, error: e.message }
