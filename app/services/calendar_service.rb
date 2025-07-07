@@ -1,6 +1,3 @@
-require "google/apis/calendar_v3"
-require "googleauth"
-
 class CalendarService
   def initialize(user)
     @user = user

@@ -1,5 +1,3 @@
-require "google/apis/gmail_v1"
-require "googleauth"
 require "mail"
 
 class GmailService

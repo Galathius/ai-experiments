@@ -1,90 +1,70 @@
-require "net/http"
-require "json"
+require "hubspot-api-client"
 
 class HubspotService
-  API_BASE = "https://api.hubapi.com"
-
-  def initialize(access_token, hubspot_identity = nil)
-    @access_token = access_token
-    @hubspot_identity = hubspot_identity
+  def initialize(access_token)
+    @client = Hubspot::Client.new(access_token: access_token)
   end
 
   def get_contacts(limit: 100, after: nil)
-    url = URI("#{API_BASE}/crm/v3/objects/contacts")
-    params = { limit: limit }
-    params[:after] = after if after
-    url.query = URI.encode_www_form(params)
+    begin
+      opts = { limit: limit }
+      opts[:after] = after if after
 
-    response = make_request(url)
+      response = @client.crm.contacts.basic_api.get_page(opts)
 
-    if response.is_a?(Net::HTTPSuccess)
-      JSON.parse(response.body)
-    else
-      Rails.logger.error "HubSpot API error: #{response.code} #{response.message}"
-      nil
+      {
+        "results" => response.results.map(&:to_hash),
+        "paging" => response.paging&.to_hash
+      }
+    rescue Hubspot::ApiError => e
+      handle_api_error(e, "getting contacts")
     end
   end
 
   def get_contact(contact_id)
-    url = URI("#{API_BASE}/crm/v3/objects/contacts/#{contact_id}")
-
-    response = make_request(url)
-
-    if response.is_a?(Net::HTTPSuccess)
-      JSON.parse(response.body)
-    else
-      Rails.logger.error "HubSpot API error: #{response.code} #{response.message}"
-      nil
+    begin
+      response = @client.crm.contacts.basic_api.get_by_id(contact_id)
+      response.to_hash
+    rescue Hubspot::ApiError => e
+      handle_api_error(e, "getting contact #{contact_id}")
     end
   end
 
   def create_contact(properties)
-    url = URI("#{API_BASE}/crm/v3/objects/contacts")
-
-    body = {
-      properties: properties
-    }.to_json
-
-    response = make_request(url, method: :post, body: body)
-
-    if response.is_a?(Net::HTTPSuccess)
-      JSON.parse(response.body)
-    else
-      Rails.logger.error "HubSpot API error: #{response.code} #{response.message}"
-      nil
+    begin
+      contact_input = Hubspot::Crm::Contacts::SimplePublicObjectInput.new(properties: properties)
+      response = @client.crm.contacts.basic_api.create(contact_input)
+      response.to_hash
+    rescue Hubspot::ApiError => e
+      handle_api_error(e, "creating contact")
     end
   end
 
   def get_notes(limit: 100, after: nil)
-    url = URI("#{API_BASE}/crm/v3/objects/notes")
-    params = {
-      limit: limit,
-      properties: "hs_note_body,hs_timestamp,hs_createdate,hs_lastmodifieddate",
-      associations: "contacts"
-    }
-    params[:after] = after if after
-    url.query = URI.encode_www_form(params)
+    begin
+      opts = {
+        limit: limit,
+        properties: [ "hs_note_body", "hs_timestamp", "hs_createdate", "hs_lastmodifieddate" ],
+        associations: [ "contacts" ]
+      }
+      opts[:after] = after if after
 
-    response = make_request(url)
+      response = @client.crm.objects.notes.basic_api.get_page(opts)
 
-    if response.is_a?(Net::HTTPSuccess)
-      JSON.parse(response.body)
-    else
-      Rails.logger.error "HubSpot API error: #{response.code} #{response.message}"
-      nil
+      {
+        "results" => response.results.map(&:to_hash),
+        "paging" => response.paging&.to_hash
+      }
+    rescue Hubspot::ApiError => e
+      handle_api_error(e, "getting notes")
     end
   end
 
   def get_contact_notes(contact_id, limit: 100)
-    url = URI("#{API_BASE}/crm/v3/objects/contacts/#{contact_id}/associations/notes")
-    params = { limit: limit }
-    url.query = URI.encode_www_form(params)
-
-    response = make_request(url)
-
-    if response.is_a?(Net::HTTPSuccess)
-      associations_data = JSON.parse(response.body)
-      note_ids = associations_data["results"]&.map { |result| result["id"] } || []
+    begin
+      # Get note associations for the contact
+      response = @client.crm.contacts.associations_api.get_all(contact_id, "notes", { limit: limit })
+      note_ids = response.results.map(&:id)
 
       # Fetch actual note content for each note ID
       notes = []
@@ -94,132 +74,60 @@ class HubspotService
       end
 
       notes
-    else
-      Rails.logger.error "HubSpot API error fetching contact notes: #{response.code} #{response.message}"
+    rescue Hubspot::ApiError => e
+      handle_api_error(e, "getting contact notes for #{contact_id}")
       []
     end
   end
 
   def get_note(note_id)
-    url = URI("#{API_BASE}/crm/v3/objects/notes/#{note_id}")
-    # Request specific properties for notes
-    params = { properties: "hs_note_body,hs_timestamp,hs_createdate" }
-    url.query = URI.encode_www_form(params)
-
-    response = make_request(url)
-
-    if response.is_a?(Net::HTTPSuccess)
-      JSON.parse(response.body)
-    else
-      Rails.logger.error "HubSpot API error fetching note: #{response.code} #{response.message}"
-      nil
+    begin
+      response = @client.crm.objects.notes.basic_api.get_by_id(
+        note_id,
+        properties: [ "hs_note_body", "hs_timestamp", "hs_createdate" ]
+      )
+      response.to_hash
+    rescue Hubspot::ApiError => e
+      handle_api_error(e, "getting note #{note_id}")
     end
   end
 
   def create_note(contact_id, note_content)
-    url = URI("#{API_BASE}/crm/v3/objects/notes")
-
-    body = {
-      properties: {
-        hs_note_body: note_content,
-        hs_timestamp: Time.current.to_i * 1000 # HubSpot expects milliseconds
-      },
-      associations: [
-        {
-          to: {
-            id: contact_id
-          },
-          types: [
-            {
-              associationCategory: "HUBSPOT_DEFINED",
-              associationTypeId: 202 # Note to Contact association
-            }
-          ]
+    begin
+      # Create the note
+      note_input = Hubspot::Crm::Objects::Notes::SimplePublicObjectInput.new(
+        properties: {
+          "hs_note_body" => note_content,
+          "hs_timestamp" => (Time.current.to_i * 1000).to_s
         }
-      ]
-    }.to_json
+      )
 
-    response = make_request(url, method: :post, body: body)
+      note_response = @client.crm.objects.notes.basic_api.create(note_input)
 
-    if response.is_a?(Net::HTTPSuccess)
-      JSON.parse(response.body)
-    else
-      Rails.logger.error "HubSpot API error creating note: #{response.code} #{response.message}"
-      Rails.logger.error "Response body: #{response.body}"
-      nil
+      # Associate the note with the contact
+      association_input = Hubspot::Crm::Objects::Notes::AssociationSpec.new(
+        association_category: "HUBSPOT_DEFINED",
+        association_type_id: 202
+      )
+
+      @client.crm.objects.notes.associations_api.create(
+        note_response.id,
+        "contacts",
+        contact_id,
+        association_input
+      )
+
+      note_response.to_hash
+    rescue Hubspot::ApiError => e
+      handle_api_error(e, "creating note for contact #{contact_id}")
     end
   end
 
   private
 
-  def make_request(url, method: :get, body: nil, retry_count: 0)
-    http = Net::HTTP.new(url.host, url.port)
-    http.use_ssl = true
-
-    request = case method
-    when :get
-                Net::HTTP::Get.new(url)
-    when :post
-                Net::HTTP::Post.new(url)
-    when :put
-                Net::HTTP::Put.new(url)
-    when :delete
-                Net::HTTP::Delete.new(url)
-    end
-
-    request["Authorization"] = "Bearer #{@access_token}"
-    request["Content-Type"] = "application/json" if body
-    request.body = body if body
-
-    response = http.request(request)
-
-    # Handle 401 Unauthorized - try to refresh token once
-    if response.code == "401" && retry_count == 0 && @hubspot_identity&.refresh_token
-      Rails.logger.info "HubSpot token expired, attempting refresh..."
-      if refresh_access_token
-        return make_request(url, method: method, body: body, retry_count: 1)
-      end
-    end
-
-    response
-  end
-
-  def refresh_access_token
-    return false unless @hubspot_identity&.refresh_token
-
-    url = URI("https://api.hubapi.com/oauth/v1/token")
-    http = Net::HTTP.new(url.host, url.port)
-    http.use_ssl = true
-
-    request = Net::HTTP::Post.new(url)
-    request["Content-Type"] = "application/x-www-form-urlencoded"
-    request.body = URI.encode_www_form({
-      grant_type: "refresh_token",
-      client_id: Rails.application.credentials.dig(:oauth, :hubspot, :client_id),
-      client_secret: Rails.application.credentials.dig(:oauth, :hubspot, :client_secret),
-      refresh_token: @hubspot_identity.refresh_token
-    })
-
-    response = http.request(request)
-
-    if response.is_a?(Net::HTTPSuccess)
-      token_data = JSON.parse(response.body)
-      @access_token = token_data["access_token"]
-
-      # Update the stored token
-      @hubspot_identity.update!(
-        access_token: token_data["access_token"],
-        refresh_token: token_data["refresh_token"] || @hubspot_identity.refresh_token
-      )
-
-      Rails.logger.info "HubSpot token refreshed successfully"
-      true
-    else
-      Rails.logger.error "Failed to refresh HubSpot token: #{response.code} #{response.message}"
-      false
-    end
-  rescue => e
-    Rails.logger.error "Error refreshing HubSpot token: #{e.message}"
-    false
+  def handle_api_error(error, operation)
+    Rails.logger.error "HubSpot API error during #{operation}: #{error.code} #{error.message}"
+    Rails.logger.error "Response body: #{error.response_body}" if error.respond_to?(:response_body)
+    nil
   end
 end

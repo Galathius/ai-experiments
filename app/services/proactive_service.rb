@@ -163,13 +163,13 @@ class ProactiveService
             "content": "email content"
           },
           {
-            "type": "create_task",#{' '}
+            "type": "create_task",
             "title": "task title",
             "description": "task description"
           },
           {
             "type": "create_calendar_event",
-            "title": "event title",#{' '}
+            "title": "event title",
             "description": "event description"
           }
         ]
