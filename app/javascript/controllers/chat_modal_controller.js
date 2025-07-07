@@ -125,6 +125,13 @@ export default class extends Controller {
     }
   }
 
+  handleModalKeydown(event) {
+    if (event.key === 'Escape') {
+      event.preventDefault()
+      this.closeModal()
+    }
+  }
+
   handleKeydown(event) {
     if (event.key === 'Enter' && !event.shiftKey) {
       event.preventDefault()
