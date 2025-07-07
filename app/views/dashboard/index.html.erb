@@ -111,11 +111,8 @@
             <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
               <!-- Recent Emails -->
               <div>
-                <div class="flex items-center justify-between mb-4">
+                <div class="mb-4">
                   <h4 class="font-medium text-gray-900">Recent Emails (<%= @stats[:emails] %> total)</h4>
-                  <%= button_to import_google_emails_path, method: :post, class: "text-blue-600 hover:text-blue-700 text-sm font-medium cursor-pointer" do %>
-                    Import Now
-                  <% end %>
                 </div>
                 <div class="space-y-2">
                   <% if @recent_emails.any? %>
@@ -134,11 +131,8 @@
 
               <!-- Upcoming Calendar Events -->
               <div>
-                <div class="flex items-center justify-between mb-4">
+                <div class="mb-4">
                   <h4 class="font-medium text-gray-900">Upcoming Events (<%= @stats[:calendar_events] %> total)</h4>
-                  <%= button_to import_google_calendar_path, method: :post, class: "text-blue-600 hover:text-blue-700 text-sm font-medium cursor-pointer" do %>
-                    Import Now
-                  <% end %>
                 </div>
                 <div class="space-y-2">
                   <% if @upcoming_events.any? %>
@@ -199,11 +193,8 @@
             <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
               <!-- Recent Contacts -->
               <div>
-                <div class="flex items-center justify-between mb-4">
+                <div class="mb-4">
                   <h4 class="font-medium text-gray-900">Recent Contacts (<%= @stats[:hubspot_contacts] %> total)</h4>
-                  <%= button_to import_hubspot_contacts_path, method: :post, class: "text-blue-600 hover:text-blue-700 text-sm font-medium cursor-pointer" do %>
-                    Import Now
-                  <% end %>
                 </div>
                 <div class="space-y-2">
                   <% if @recent_contacts.any? %>
@@ -228,11 +219,8 @@
 
               <!-- Notes Summary -->
               <div>
-                <div class="flex items-center justify-between mb-4">
+                <div class="mb-4">
                   <h4 class="font-medium text-gray-900">Notes (<%= @stats[:hubspot_notes] %> total)</h4>
-                  <%= button_to import_hubspot_notes_path, method: :post, class: "text-blue-600 hover:text-blue-700 text-sm font-medium cursor-pointer" do %>
-                    Import Now
-                  <% end %>
                 </div>
                 <div class="text-sm text-gray-600">
                   <p>📝 Total notes: <%= @stats[:hubspot_notes] %></p>

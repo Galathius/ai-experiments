@@ -25,29 +25,6 @@ class GoogleController < ApplicationController
     end
   end
 
-  def import_emails
-    google_identity = Current.user.google_identity
-
-    unless google_identity
-      redirect_to google_path, alert: "Please connect your Google account first."
-      return
-    end
-
-    ImportEmailsJob.perform_later(Current.user.id)
-    redirect_to google_path, notice: "Email import started. This may take a few minutes."
-  end
-
-  def import_calendar
-    google_identity = Current.user.google_identity
-
-    unless google_identity
-      redirect_to google_path, alert: "Please connect your Google account first."
-      return
-    end
-
-    ImportCalendarEventsJob.perform_later(Current.user.id)
-    redirect_to google_path, notice: "Calendar import started. This may take a few minutes."
-  end
 
   private
 

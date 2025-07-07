@@ -7,12 +7,7 @@ Rails.application.routes.draw do
   resources :messages, only: [ :create ]
 
   delete "/hubspot/disconnect" => "hubspot#disconnect", as: :disconnect_hubspot
-  post "/hubspot/import_contacts" => "hubspot#import_contacts", as: :import_hubspot_contacts
-  post "/hubspot/import_notes" => "hubspot#import_notes", as: :import_hubspot_notes
-
   delete "/google/disconnect" => "google#disconnect", as: :disconnect_google
-  post "/google/import_emails" => "google#import_emails", as: :import_google_emails
-  post "/google/import_calendar" => "google#import_calendar", as: :import_google_calendar
 
   resource :session, only: [:new, :destroy]
   # Define your application routes per the DSL in https://guides.rubyonrails.org/routing.html

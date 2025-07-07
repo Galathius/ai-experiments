@@ -20,29 +20,6 @@ class HubspotController < ApplicationController
     end
   end
 
-  def import_contacts
-    hubspot_identity = Current.user.hubspot_identity
-
-    unless hubspot_identity
-      redirect_to hubspot_path, alert: "Please connect your HubSpot account first."
-      return
-    end
-
-    ImportHubspotContactsJob.perform_later(Current.user.id)
-    redirect_to hubspot_path, notice: "Contact import started. This may take a few minutes."
-  end
-
-  def import_notes
-    hubspot_identity = Current.user.hubspot_identity
-
-    unless hubspot_identity
-      redirect_to hubspot_path, alert: "Please connect your HubSpot account first."
-      return
-    end
-
-    ImportHubspotNotesJob.perform_later(Current.user.id)
-    redirect_to hubspot_path, notice: "Notes import started. This may take a few minutes."
-  end
 
 
   private
