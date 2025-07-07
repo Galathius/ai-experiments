@@ -16,8 +16,9 @@ class DashboardController < ApplicationController
     
     # Get actual data for inline display
     @recent_emails = @user.emails.order(received_at: :desc).limit(5)
-    @upcoming_events = @user.calendar_events.upcoming.order(start_time: :asc).limit(5)
+    @closest_events = @user.calendar_events.closest.limit(5)
     @recent_contacts = @user.hubspot_contacts.order(created_at: :desc).limit(5)
+    @recent_notes = @user.hubspot_notes.order(created_at: :desc).limit(5)
     @pending_tasks = @user.tasks.pending.order(created_at: :desc).limit(10)
     @recent_action_logs = @user.action_logs.order(created_at: :desc).limit(10)
   end

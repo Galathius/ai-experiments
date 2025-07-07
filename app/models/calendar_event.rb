@@ -10,6 +10,11 @@ class CalendarEvent < ApplicationRecord
   scope :past, -> { where("end_time < ?", Time.current) }
   scope :today, -> { where(start_time: Time.current.beginning_of_day..Time.current.end_of_day) }
   scope :this_week, -> { where(start_time: Time.current.beginning_of_week..Time.current.end_of_week) }
+  scope :closest, -> { 
+    # Order by absolute distance from current time
+    select("*, ABS(EXTRACT(EPOCH FROM (start_time - NOW()))) as time_distance")
+      .order("time_distance ASC")
+  }
 
   def content_for_embedding
     parts = []

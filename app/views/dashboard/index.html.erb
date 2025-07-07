@@ -129,18 +129,43 @@
                 </div>
               </div>
 
-              <!-- Upcoming Calendar Events -->
+              <!-- Closest Calendar Events -->
               <div>
                 <div class="mb-4">
-                  <h4 class="font-medium text-gray-900">Upcoming Events (<%= @stats[:calendar_events] %> total)</h4>
+                  <h4 class="font-medium text-gray-900">Closest Events (<%= @stats[:calendar_events] %> total)</h4>
                 </div>
                 <div class="space-y-2">
-                  <% if @upcoming_events.any? %>
-                    <% @upcoming_events.each do |event| %>
+                  <% if @closest_events.any? %>
+                    <% @closest_events.each do |event| %>
+                      <% 
+                        now = Time.current
+                        is_past = event.end_time < now
+                        is_current = event.start_time <= now && event.end_time >= now
+                        is_future = event.start_time > now
+                        
+                        status_color = if is_current
+                          "text-green-600"
+                        elsif is_past
+                          "text-gray-500"
+                        else
+                          "text-blue-600"
+                        end
+                        
+                        status_text = if is_current
+                          "🟢 Happening now"
+                        elsif is_past
+                          "⏱️ #{time_ago_in_words(event.end_time)} ago"
+                        else
+                          "📅 In #{time_ago_in_words(event.start_time)}"
+                        end
+                      %>
                       <div class="text-sm p-3 bg-gray-50 rounded">
                         <div class="font-medium text-gray-900 truncate"><%= event.title %></div>
                         <div class="text-gray-600 text-xs">
                           <%= event.start_time.strftime("%b %d, %Y at %I:%M %p") %>
+                        </div>
+                        <div class="text-xs <%= status_color %> mt-1">
+                          <%= status_text %>
                         </div>
                         <% if event.location.present? %>
                           <div class="text-gray-500 text-xs">📍 <%= event.location %></div>
@@ -148,7 +173,7 @@
                       </div>
                     <% end %>
                   <% else %>
-                    <div class="text-gray-500 text-sm italic">No upcoming events</div>
+                    <div class="text-gray-500 text-sm italic">No calendar events imported yet</div>
                   <% end %>
                 </div>
               </div>
@@ -217,14 +242,35 @@
                 </div>
               </div>
 
-              <!-- Notes Summary -->
+              <!-- Recent Notes -->
               <div>
                 <div class="mb-4">
-                  <h4 class="font-medium text-gray-900">Notes (<%= @stats[:hubspot_notes] %> total)</h4>
+                  <h4 class="font-medium text-gray-900">Recent Notes (<%= @stats[:hubspot_notes] %> total)</h4>
                 </div>
-                <div class="text-sm text-gray-600">
-                  <p>📝 Total notes: <%= @stats[:hubspot_notes] %></p>
-                  <p class="text-xs text-gray-500 mt-2">Notes are imported and processed for AI context</p>
+                <div class="space-y-2">
+                  <% if @recent_notes.any? %>
+                    <% @recent_notes.each do |note| %>
+                      <div class="text-sm p-3 bg-gray-50 rounded">
+                        <div class="font-medium text-gray-900 mb-1">
+                          <% if note.hubspot_contact %>
+                            📝 Note about <%= note.hubspot_contact.first_name %> <%= note.hubspot_contact.last_name %>
+                          <% else %>
+                            📝 CRM Note
+                          <% end %>
+                        </div>
+                        <div class="text-gray-700 text-xs mb-2">
+                          <%= truncate(strip_tags(note.content), length: 150) %>
+                        </div>
+                        <% if note.hubspot_contact&.company.present? %>
+                          <div class="text-gray-500 text-xs">
+                            🏢 <%= note.hubspot_contact.company %>
+                          </div>
+                        <% end %>
+                      </div>
+                    <% end %>
+                  <% else %>
+                    <div class="text-gray-500 text-sm italic">No notes imported yet</div>
+                  <% end %>
                 </div>
               </div>
             </div>

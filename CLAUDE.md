@@ -143,7 +143,7 @@ This application is part of a paid challenge to build a comprehensive AI assista
 - **Tool Calling**: Email sending, calendar events, task management, CRM notes
 - **Task Management**: AI-created tasks with priorities and due dates
 - **Proactive Monitoring**: Background jobs for data freshness and proactive assistance
-- **Dashboard**: Complete overview with connection status and recent data
+- **Dashboard**: Complete overview with connection status, recent emails, closest events (past and future), contacts, tasks
 - **Chat Modal**: Professional interface with calendar event formatting
 
 ### Architecture Highlights
