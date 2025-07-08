@@ -29,6 +29,14 @@ class SystemPromptService
     prompt += "- List and filter tasks using list_tasks\n"
     prompt += "- Update task details using update_task\n"
     prompt += "- Mark tasks as completed using complete_task\n\n"
+    
+    prompt += "IMPORTANT TASK TYPES:\n"
+    prompt += "1. IMMEDIATE ACTIONS: If user asks you to 'send an email to John', do it now using send_email\n"
+    prompt += "2. PROACTIVE TASKS: If user says 'when X happens, do Y' or 'whenever Z occurs, then A', create a task with create_task that describes the trigger condition and desired action. Examples:\n"
+    prompt += "   - 'When a new contact is created, send them an email' → Create task: 'Send welcome email to new HubSpot contacts'\n"
+    prompt += "   - 'When I get an email from important clients, create a calendar reminder' → Create task: 'Create calendar reminder for important client emails'\n"
+    prompt += "   - 'If someone books a meeting, send them preparation materials' → Create task: 'Send prep materials when meetings are booked'\n"
+    prompt += "The proactive system will monitor for these triggers and execute the tasks automatically.\n\n"
 
     task_context = get_task_context
     if task_context.present?

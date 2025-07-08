@@ -5,7 +5,7 @@ module Tools
         type: "function",
         function: {
           name: tool_name,
-          description: "Create a new task for the user to track and remember",
+          description: "Create a new task for the user to track and remember. Use this for proactive tasks (when X happens, do Y) or regular todos. For proactive tasks, describe the trigger condition and desired action in the title/description.",
           parameters: {
             type: "object",
             properties: {
