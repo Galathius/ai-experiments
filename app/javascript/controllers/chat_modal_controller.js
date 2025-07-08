@@ -1,5 +1,5 @@
 import { Controller } from "@hotwired/stimulus"
-import { parse, format, isValid } from "date-fns"
+import dayjs from "dayjs"
 
 export default class extends Controller {
   static targets = ["chatTab", "historyTab", "chatContent", "historyContent", "closeBtn", "sendBtn", "messageInput", "chatForm", "messagesContainer", "newThreadBtn"]
@@ -271,32 +271,32 @@ export default class extends Controller {
       })
       
       // Try multiple date formats for the new format
-      let startDate = parse(eventData.start, 'yyyy-MM-dd HH:mm', new Date())
-      if (!isValid(startDate)) {
-        startDate = parse(eventData.start, 'yyyy-MM-dd H:mm', new Date())
+      let startDate = dayjs(eventData.start, 'YYYY-MM-DD HH:mm')
+      if (!startDate.isValid()) {
+        startDate = dayjs(eventData.start, 'YYYY-MM-DD H:mm')
       }
-      if (!isValid(startDate)) {
-        startDate = parse(eventData.start, 'yyyy-MM-dd HH', new Date())
+      if (!startDate.isValid()) {
+        startDate = dayjs(eventData.start, 'YYYY-MM-DD HH')
       }
-      if (!isValid(startDate)) {
-        startDate = parse(eventData.start, 'yyyy-MM-dd H', new Date())
-      }
-      
-      let endDate = parse(eventData.end, 'yyyy-MM-dd HH:mm', new Date())
-      if (!isValid(endDate)) {
-        endDate = parse(eventData.end, 'yyyy-MM-dd H:mm', new Date())
-      }
-      if (!isValid(endDate)) {
-        endDate = parse(eventData.end, 'yyyy-MM-dd HH', new Date())
-      }
-      if (!isValid(endDate)) {
-        endDate = parse(eventData.end, 'yyyy-MM-dd H', new Date())
+      if (!startDate.isValid()) {
+        startDate = dayjs(eventData.start, 'YYYY-MM-DD H')
       }
       
-      const dayName = isValid(startDate) ? format(startDate, 'EEEE') : 'Day'
-      const dayNumber = isValid(startDate) ? format(startDate, 'd') : '?'
-      const startTime = isValid(startDate) ? format(startDate, 'h a').replace(':00', '') : eventData.start
-      const endTime = isValid(endDate) ? format(endDate, 'h a').replace(':00', '') : eventData.end
+      let endDate = dayjs(eventData.end, 'YYYY-MM-DD HH:mm')
+      if (!endDate.isValid()) {
+        endDate = dayjs(eventData.end, 'YYYY-MM-DD H:mm')
+      }
+      if (!endDate.isValid()) {
+        endDate = dayjs(eventData.end, 'YYYY-MM-DD HH')
+      }
+      if (!endDate.isValid()) {
+        endDate = dayjs(eventData.end, 'YYYY-MM-DD H')
+      }
+      
+      const dayName = startDate.isValid() ? startDate.format('dddd') : 'Day'
+      const dayNumber = startDate.isValid() ? startDate.format('D') : '?'
+      const startTime = startDate.isValid() ? startDate.format('h A').replace(':00', '') : eventData.start
+      const endTime = endDate.isValid() ? endDate.format('h A').replace(':00', '') : eventData.end
       
       return this.renderEventCard(dayNumber, dayName, startTime, endTime, eventData.title)
     }).join('')
@@ -319,24 +319,24 @@ export default class extends Controller {
       const dateStr = match[3].trim()
       const timeStr = match[4].trim()
       
-      // Parse with date-fns
+      // Parse with dayjs
       const fullDateStr = `${dateStr} ${timeStr}`
-      let eventDate = parse(fullDateStr, 'MMMM dd, yyyy h:mm a', new Date())
+      let eventDate = dayjs(fullDateStr, 'MMMM DD, YYYY h:mm A')
       
       // Try alternative formats if first parsing fails
-      if (!isValid(eventDate)) {
-        eventDate = parse(fullDateStr, 'MMMM d, yyyy h:mm a', new Date())
+      if (!eventDate.isValid()) {
+        eventDate = dayjs(fullDateStr, 'MMMM D, YYYY h:mm A')
       }
-      if (!isValid(eventDate)) {
-        eventDate = parse(fullDateStr, 'MMM dd, yyyy h:mm a', new Date())
+      if (!eventDate.isValid()) {
+        eventDate = dayjs(fullDateStr, 'MMM DD, YYYY h:mm A')
       }
-      if (!isValid(eventDate)) {
-        eventDate = parse(fullDateStr, 'MMM d, yyyy h:mm a', new Date())
+      if (!eventDate.isValid()) {
+        eventDate = dayjs(fullDateStr, 'MMM D, YYYY h:mm A')
       }
       
-      const dayNumber = isValid(eventDate) ? format(eventDate, 'd') : '?'
-      const dayName = isValid(eventDate) ? format(eventDate, 'EEEE') : 'Day'
-      const startTime = isValid(eventDate) ? format(eventDate, 'h a').replace(':00', '') : timeStr
+      const dayNumber = eventDate.isValid() ? eventDate.format('D') : '?'
+      const dayName = eventDate.isValid() ? eventDate.format('dddd') : 'Day'
+      const startTime = eventDate.isValid() ? eventDate.format('h A').replace(':00', '') : timeStr
       
       return this.renderEventCard(dayNumber, dayName, startTime, null, title)
     }).join('')
