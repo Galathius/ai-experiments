@@ -75,7 +75,118 @@ class CalendarService
     end
   end
 
+  def find_available_slots(start_date:, end_date:, duration_minutes: 60, working_hours_start: "09:00", working_hours_end: "17:00", max_suggestions: 5)
+    return [] unless @calendar.authorization
+
+    # Validate dates
+    if start_date > end_date
+      Rails.logger.error "Invalid date range: start_date #{start_date} > end_date #{end_date}"
+      return []
+    end
+
+    # Query Google Calendar free/busy API
+    time_min = start_date.beginning_of_day.iso8601
+    time_max = end_date.end_of_day.iso8601
+    
+    Rails.logger.info "FreeBusy query: #{time_min} to #{time_max} (start_date: #{start_date}, end_date: #{end_date})"
+
+    request = Google::Apis::CalendarV3::FreeBusyRequest.new(
+      time_min: time_min,
+      time_max: time_max,
+      items: [Google::Apis::CalendarV3::FreeBusyRequestItem.new(id: "primary")]
+    )
+
+    result = @calendar.query_freebusy(request)
+    busy_times = result.calendars["primary"]&.busy || []
+    
+    Rails.logger.info "Google API returned #{busy_times.size} busy periods: #{busy_times.inspect}"
+
+    # Find available slots
+    available_slots = []
+    current_date = start_date
+
+    while current_date <= end_date && available_slots.length < max_suggestions
+      # Skip weekends (Saturday = 6, Sunday = 0)
+      unless current_date.wday == 0 || current_date.wday == 6
+        daily_slots = find_daily_available_slots_from_busy_times(
+          current_date,
+          busy_times,
+          duration_minutes,
+          working_hours_start,
+          working_hours_end
+        )
+        available_slots.concat(daily_slots)
+
+        # Break if we have enough suggestions
+        break if available_slots.length >= max_suggestions
+      end
+
+      current_date += 1.day
+    end
+
+    final_slots = available_slots.first(max_suggestions)
+    Rails.logger.info "Returning #{final_slots.size} available slots: #{final_slots.inspect}"
+    final_slots
+  end
+
   private
+
+  def find_daily_available_slots_from_busy_times(date, busy_times, duration_minutes, working_start, working_end)
+    # Parse working hours
+    start_hour, start_minute = working_start.split(":").map(&:to_i)
+    end_hour, end_minute = working_end.split(":").map(&:to_i)
+
+    day_start = date.beginning_of_day + start_hour.hours + start_minute.minutes
+    day_end = date.beginning_of_day + end_hour.hours + end_minute.minutes
+
+    # Filter busy times for this day and convert to Time objects
+    daily_busy_periods = busy_times.select do |busy_period|
+      period_start = Time.parse(busy_period.start)
+      period_end = Time.parse(busy_period.end)
+      
+      # Check if busy period overlaps with this day's working hours
+      !(period_end <= day_start || period_start >= day_end)
+    end.map do |busy_period|
+      {
+        start: [Time.parse(busy_period.start), day_start].max,
+        end: [Time.parse(busy_period.end), day_end].min
+      }
+    end.sort_by { |period| period[:start] }
+
+    # Find gaps between busy periods
+    available_slots = []
+    current_time = day_start
+
+    daily_busy_periods.each do |busy_period|
+      # Check if there's a gap before this busy period
+      if current_time + duration_minutes.minutes <= busy_period[:start]
+        slot_end = current_time + duration_minutes.minutes
+        if slot_end <= day_end
+          available_slots << {
+            start_time: current_time,
+            end_time: slot_end
+          }
+        end
+      end
+
+      # Move current time to after this busy period
+      current_time = [busy_period[:end], current_time].max
+    end
+
+    # Check for time after the last busy period
+    if current_time + duration_minutes.minutes <= day_end
+      available_slots << {
+        start_time: current_time,
+        end_time: current_time + duration_minutes.minutes
+      }
+    end
+
+    # Filter out slots that are too close to current time (need at least 1 hour notice)
+    now = Time.current
+    available_slots.select do |slot|
+      slot[:start_time] > now + 1.hour
+    end
+  end
 
   def perform_incremental_sync(calendar, batch_size)
     total_imported = 0

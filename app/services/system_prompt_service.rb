@@ -16,7 +16,8 @@ class SystemPromptService
   private
 
   def build_base_prompt
-    "You are an AI assistant for a financial advisor. You help with managing emails, calendar events, client relationships, HubSpot CRM data, and task management. You have access to the user's email, calendar, HubSpot contact/notes data, and task information to provide informed responses.\n\n"
+    current_time = Time.current.strftime("%A, %B %d, %Y at %I:%M %p %Z")
+    "You are an AI assistant for a financial advisor. You help with managing emails, calendar events, client relationships, HubSpot CRM data, and task management. You have access to the user's email, calendar, HubSpot contact/notes data, and task information to provide informed responses.\n\nCurrent date and time: #{current_time}\n\n"
   end
 
   def build_task_context
